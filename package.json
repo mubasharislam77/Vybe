@@ -2,14 +2,47 @@
   "name": "vybe",
   "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "apps/*"
-  ],
   "scripts": {
-    "dev": "npm run dev --workspace @vybe/web",
-    "dev:web": "npm run dev --workspace @vybe/web",
-    "dev:api": "npm run start:dev --workspace @vybe/api",
-    "build": "npm run build --workspace @vybe/web && npm run build --workspace @vybe/api"
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:indexes": "tsx scripts/create-indexes.ts",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:seed:bench": "tsx scripts/seed.ts --count=10000",
+    "provision:admin": "tsx scripts/provision-admin.ts"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.0.6",
+    "@react-three/fiber": "^9.1.2",
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.5.1",
+    "framer-motion": "^11.15.0",
+    "lenis": "^1.1.18",
+    "mongodb": "^7.7.0",
+    "next": "^15.5.27",
+    "next-auth": "5.0.0-beta.32",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "three": "^0.171.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/three": "^0.171.0",
+    "autoprefixer": "^10.4.20",
+    "dotenv": "^16.4.7",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
   },
   "engines": {
     "node": ">=20"
