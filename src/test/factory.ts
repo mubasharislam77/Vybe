@@ -55,6 +55,7 @@ export function makeAddress(overrides: Partial<Address> = {}): Address {
   return {
     fullName: 'Test Customer',
     phoneE164: '+923001234567',
+    alternatePhoneE164: undefined,
     addressLine: '123 Test Street',
     city: 'Karachi',
     province: 'Sindh',

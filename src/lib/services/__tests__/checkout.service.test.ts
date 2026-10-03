@@ -12,7 +12,7 @@ function baseInput(overrides: Partial<CheckoutInput> = {}): CheckoutInput {
     shipping: makeAddress(),
     paymentMethod: 'cod',
     ...overrides,
-  };
+  } as CheckoutInput;
 }
 
 describe('checkout.service.placeOrder', () => {
