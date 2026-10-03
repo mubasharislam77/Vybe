@@ -1,0 +1,17 @@
+{
+  "name": "vybe",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @vybe/web",
+    "dev:web": "npm run dev --workspace @vybe/web",
+    "dev:api": "npm run start:dev --workspace @vybe/api",
+    "build": "npm run build --workspace @vybe/web && npm run build --workspace @vybe/api"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
