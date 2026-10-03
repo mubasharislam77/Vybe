@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { ObjectId } from 'mongodb';
 import { normalizePakistaniPhone } from '@/lib/utils/phone';
+import { PAKISTANI_PROVINCES } from '@/lib/constants/provinces';
 
 export const objectIdSchema = z.string().refine((v) => ObjectId.isValid(v), {
   message: 'Invalid id',
@@ -11,15 +12,7 @@ export const pakistaniPhoneSchema = z
   .transform((v) => normalizePakistaniPhone(v))
   .refine((v): v is string => v !== null, { message: 'Enter a valid Pakistani mobile number' });
 
-export const PAKISTANI_PROVINCES = [
-  'Punjab',
-  'Sindh',
-  'Khyber Pakhtunkhwa',
-  'Balochistan',
-  'Gilgit-Baltistan',
-  'Azad Jammu and Kashmir',
-  'Islamabad Capital Territory',
-] as const;
+export { PAKISTANI_PROVINCES };
 
 export const addressSchema = z.object({
   fullName: z.string().trim().min(2).max(100),
