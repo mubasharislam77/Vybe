@@ -5,6 +5,14 @@ import { Container } from '@/components/ui/Container';
 
 export const metadata: Metadata = { title: 'Checkout', robots: { index: false, follow: false } };
 
+// Explicitly dynamic, not because it touches the DB today (it doesn't —
+// cart contents are client-side), but because checkout must never be
+// cached or served as static content, per the spec's explicit "never
+// share-cache private accounts, carts, checkout, or admin data." Safer
+// to state that outright than rely on Next's static/dynamic heuristic
+// continuing to land the same way as the page evolves.
+export const dynamic = 'force-dynamic';
+
 const STEPS = [
   { label: 'Cart', href: '/cart', done: true },
   { label: 'Checkout', href: null, done: false },

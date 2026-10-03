@@ -6,6 +6,12 @@ import { productToCardData } from '@/lib/services/catalog.service';
 
 export const metadata: Metadata = { title: 'Your Cart' };
 
+// Not statically prerenderable: opens a MongoDB connection at build time
+// otherwise (the actual deploy failure this fixes), and the cart itself
+// is inherently per-visitor/private — never a page that should be cached
+// or frozen as static content in the first place.
+export const dynamic = 'force-dynamic';
+
 export default async function CartPage() {
   const featured = await listFeatured(8);
   const crossSell = featured.map(productToCardData);

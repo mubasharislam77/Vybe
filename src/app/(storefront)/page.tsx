@@ -20,6 +20,14 @@ import { getCategoryNav, toProductCardData, productToCardData } from '@/lib/serv
 import { getStoreSettings } from '@/lib/repositories/settings.repo';
 import { listingQuerySchema } from '@/lib/validation/product';
 
+// Must not be statically prerendered at build time: that would open a
+// MongoDB connection during `next build` itself (Vercel's build workers
+// hitting Atlas in parallel caused real connection failures — see git
+// history). It also keeps the catalog genuinely live — new/updated
+// products show up without a redeploy, consistent with this being a
+// real-time storefront rather than a frozen snapshot.
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
   const [categories, settings, latestDrop, featured, tags, productCount] = await Promise.all([
     getCategoryNav(),
