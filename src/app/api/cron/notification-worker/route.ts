@@ -1,18 +1,21 @@
 import { NextResponse } from 'next/server';
 import { getCronSecret } from '@/lib/env';
-import { runWhatsAppWorker } from '@/lib/notifications/whatsapp/worker';
-import { runEmailWorker } from '@/lib/notifications/email/worker';
+import { drainNotificationOutbox } from '@/lib/notifications/drain';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * Triggered by Vercel Cron (vercel.json) as a backstop sweep, and/or by
- * Upstash QStash for near-real-time delivery — see README "Notifications
- * setup" for why Vercel Hobby's daily-only cron isn't fast enough on its
- * own. Drains both the WhatsApp and email outbox channels in one tick;
- * whichever channel isn't configured just reports skippedUnconfigured
- * and leaves its entries pending rather than failing.
+ * Triggered by Vercel Cron (vercel.json) as a reliability backstop — the
+ * primary delivery path is now the `after()` call in
+ * checkout.actions.submitCheckout, which attempts immediate delivery
+ * right after an order is placed. This route exists to catch anything
+ * that attempt missed (a transient failure, a function that got frozen
+ * before `after()` ran, etc.) within 5 minutes, and/or can be triggered
+ * by Upstash QStash for tighter timing — see README "Notifications setup".
+ * Drains both outbox channels in one tick; whichever channel isn't
+ * configured just reports skippedUnconfigured and leaves its entries
+ * pending rather than failing.
  *
  * Protected by a shared secret rather than session auth, since the caller
  * is a scheduler, not a logged-in user. When a `CRON_SECRET` env var is
@@ -30,8 +33,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const [whatsapp, email] = await Promise.all([runWhatsAppWorker(), runEmailWorker()]);
-  return NextResponse.json({ whatsapp, email });
+  const result = await drainNotificationOutbox();
+  return NextResponse.json(result);
 }
 
 export async function GET(request: Request) {
