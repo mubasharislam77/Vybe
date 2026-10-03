@@ -73,7 +73,7 @@ export function CartPageClient({ crossSell }: { crossSell: ProductCardData[] }) 
           <h2 className="mb-8 font-display text-2xl uppercase tracking-widest2 text-ink sm:text-3xl">
             {lines.length === 0 ? 'Shop the Drop' : 'You Might Also Like'}
           </h2>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-4">
             {crossSell.slice(0, 4).map((p) => (
               <RevealOnScroll key={p.slug} y={24} scale={0.96}>
                 <ProductCard product={p} />

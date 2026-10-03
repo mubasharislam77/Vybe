@@ -12,7 +12,7 @@ export async function RelatedProducts({ product }: { product: Product }) {
     <section className="border-t border-ink/10 py-16">
       <Container>
         <h2 className="mb-8 font-display text-2xl uppercase tracking-widest2 text-ink">You May Also Like</h2>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-4">
           {related.map((p) => (
             <ProductCard key={p.slug} product={productToCardData(p)} />
           ))}

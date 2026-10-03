@@ -17,7 +17,7 @@ export function ProductGrid({ products }: { products: ProductCardData[] }) {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
       {products.map((p, i) => (
         <RevealOnScroll key={p.slug} delay={(i % 4) * 0.06} y={28} scale={0.96}>
           <ProductCard product={p} />
