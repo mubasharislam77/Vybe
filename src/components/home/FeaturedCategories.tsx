@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Container } from '@/components/ui/Container';
+import { ScrollSpin } from '@/components/ui/ScrollMotion';
+import { RingShape } from '@/components/ui/Shapes';
 import type { CategoryNavNode } from '@/lib/services/catalog.service';
 
 const IMAGE_BY_SLUG: Record<string, string> = {
@@ -17,8 +19,11 @@ export function FeaturedCategories({ categories }: { categories: CategoryNavNode
   if (flat.length === 0) return null;
 
   return (
-    <section className="py-16 sm:py-20">
-      <Container>
+    <section className="relative overflow-hidden py-16 sm:py-20">
+      <ScrollSpin factor={-0.05} className="absolute -left-20 top-1/2 z-0 hidden -translate-y-1/2 lg:block">
+        <RingShape size={220} color="burgundy" opacity={0.08} />
+      </ScrollSpin>
+      <Container className="relative">
         <h2 className="mb-8 font-display text-2xl uppercase tracking-widest2 text-ink sm:text-3xl">Shop by Category</h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {flat.slice(0, 5).map((cat, i) => (

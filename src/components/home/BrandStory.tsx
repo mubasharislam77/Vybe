@@ -1,10 +1,15 @@
 import Link from 'next/link';
 import { Container } from '@/components/ui/Container';
+import { ScrollSpin } from '@/components/ui/ScrollMotion';
+import { PlusShape } from '@/components/ui/Shapes';
 
 export function BrandStory() {
   return (
-    <section className="py-16 sm:py-24">
-      <Container className="max-w-3xl text-center">
+    <section className="relative overflow-hidden py-16 sm:py-24">
+      <ScrollSpin factor={0.1} className="absolute left-1/2 top-8 z-0 -translate-x-1/2">
+        <PlusShape size={40} color="burgundy" opacity={0.2} />
+      </ScrollSpin>
+      <Container className="relative max-w-3xl text-center">
         <p className="mb-3 font-display text-xs uppercase tracking-widest2 text-burgundy">Our Story</p>
         <h2 className="font-display text-3xl uppercase tracking-tight text-ink sm:text-5xl">
           Desi roots. Global vibe.

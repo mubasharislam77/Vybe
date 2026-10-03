@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { ScrollSpin, ScrollDrift } from '@/components/ui/ScrollMotion';
+import { RingShape, DiamondShape } from '@/components/ui/Shapes';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -19,7 +21,15 @@ export default function Hero() {
         <span className="flex-1 bg-ivory" />
       </div>
 
-      <div className="mx-auto grid max-w-7xl grid-cols-1 lg:grid-cols-12">
+      {/* decorative, scroll-linked background shapes — aria-hidden, inert under reduced motion */}
+      <ScrollSpin factor={0.08} className="absolute -right-24 -top-24 z-0 hidden lg:block">
+        <RingShape size={340} color="lime" opacity={0.12} />
+      </ScrollSpin>
+      <ScrollDrift factor={-0.15} axis="y" className="absolute left-[8%] top-[65%] z-0">
+        <DiamondShape size={22} color="burgundy" opacity={0.5} />
+      </ScrollDrift>
+
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 lg:grid-cols-12">
         <div className="relative z-10 flex flex-col justify-center px-4 py-16 sm:px-6 lg:col-span-6 lg:px-8 lg:py-28">
           <motion.span
             initial="hidden"
