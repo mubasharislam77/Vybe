@@ -25,7 +25,7 @@ export function ScrollMarqueeBand({ text, tone = 'ink' }: { text: string; tone?:
   const words = Array.from({ length: 4 }, () => text).join(' • ') + ' • ';
 
   return (
-    <div className={`overflow-hidden border-y border-ink/10 py-4 ${bg}`} aria-hidden="true">
+    <div id="next-section" className={`overflow-hidden border-y border-ink/10 py-4 ${bg}`} aria-hidden="true">
       <motion.div className="flex w-max whitespace-nowrap" style={reduceMotion ? undefined : { x }}>
         <span className="shrink-0 font-display text-2xl uppercase tracking-tight sm:text-4xl">{words}</span>
         <span className="shrink-0 font-display text-2xl uppercase tracking-tight sm:text-4xl">{words}</span>

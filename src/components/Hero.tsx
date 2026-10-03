@@ -12,67 +12,77 @@ const fadeUp = {
   show: (delay: number) => ({ opacity: 1, y: 0, transition: { duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] as const } }),
 };
 
+const QUICK_CATEGORIES = [
+  { label: 'Hoodies', href: '/category/hoodies' },
+  { label: 'Tees', href: '/category/t-shirts' },
+  { label: 'Sweatshirts', href: '/category/sweatshirts' },
+];
+
+const SIDE_TAGS = [
+  { label: 'New Arrivals', href: '/new-arrivals' },
+  { label: 'Best Sellers', href: '/best-sellers' },
+  { label: 'Sale', href: '/sale' },
+  { label: 'Shop All', href: '/shop' },
+];
+
 export default function Hero() {
   const { ref, scrollYProgress } = useLocalScrollProgress<HTMLElement>(['start start', 'end start']);
   const reduceMotion = useReducedMotion();
 
-  // As the hero scrolls out of view: the photo drifts up slower than the
-  // page (parallax) and zooms in slightly; the text column fades/rises
-  // out faster, so it clears the viewport before the image does.
-  const imageY = useTransform(scrollYProgress, [0, 1], [0, -80]);
-  const imageScale = useTransform(scrollYProgress, [0, 1], [1, 1.12]);
-  const textY = useTransform(scrollYProgress, [0, 1], [0, -120]);
+  const imageY = useTransform(scrollYProgress, [0, 1], [0, -60]);
+  const textY = useTransform(scrollYProgress, [0, 1], [0, -100]);
   const textOpacity = useTransform(scrollYProgress, [0, 0.6, 1], [1, 1, 0]);
 
   return (
-    <section ref={ref} className="relative overflow-hidden bg-ink">
-      {/* thin multi-tone accent bar — the only "gradient-adjacent" move on the page, kept to a hairline */}
-      <div className="flex h-1.5 w-full">
-        <span className="flex-1 bg-lime" />
-        <span className="flex-1 bg-burgundy" />
-        <span className="flex-1 bg-ivory" />
-      </div>
-
+    <section ref={ref} id="hero" className="relative overflow-hidden bg-ivory">
       {/* decorative, scroll-linked background shapes — aria-hidden, inert under reduced motion */}
-      <ScrollSpin factor={0.08} className="absolute -right-24 -top-24 z-0 hidden lg:block">
-        <RingShape size={340} color="lime" opacity={0.12} />
+      <ScrollSpin factor={0.06} className="absolute -left-20 top-10 z-0 hidden lg:block">
+        <RingShape size={220} color="burgundy" opacity={0.1} />
       </ScrollSpin>
-      <ScrollDrift factor={-0.15} axis="y" className="absolute left-[8%] top-[65%] z-0">
-        <DiamondShape size={22} color="burgundy" opacity={0.5} />
+      <ScrollDrift factor={-0.12} axis="y" className="absolute left-[6%] top-[80%] z-0">
+        <DiamondShape size={18} color="burgundy" opacity={0.4} />
       </ScrollDrift>
 
-      <div className="relative mx-auto grid max-w-7xl grid-cols-1 lg:grid-cols-12">
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 items-center lg:grid-cols-12">
+        {/* Left: copy */}
         <motion.div
           style={reduceMotion ? undefined : { y: textY, opacity: textOpacity }}
-          className="relative z-10 flex flex-col justify-center px-4 py-16 sm:px-6 lg:col-span-6 lg:px-8 lg:py-28"
+          className="relative z-10 flex flex-col justify-center px-4 py-14 sm:px-6 lg:col-span-6 lg:px-8 lg:py-20"
         >
-          <motion.span
+          <motion.p
             initial="hidden"
             animate="show"
             custom={0}
             variants={fadeUp}
-            className="mb-5 inline-flex w-fit items-center gap-2 bg-burgundy px-3 py-1.5 font-display text-xs uppercase tracking-widest2 text-ivory"
+            className="mb-4 font-display text-xs uppercase tracking-widest2 text-burgundy"
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-lime" aria-hidden="true" />
-            Pakistan&apos;s streetwear, elevated
-          </motion.span>
+            Designed for the culture
+          </motion.p>
 
-          <motion.h1
+          <motion.div
             initial="hidden"
             animate="show"
             custom={0.1}
             variants={fadeUp}
-            className="font-display text-[18vw] leading-[0.85] tracking-tight text-lime sm:text-[9rem] lg:text-[7rem] xl:text-[8rem]"
+            className="relative flex items-start"
           >
-            VYBE
-          </motion.h1>
+            <h1 className="font-display text-[20vw] leading-[0.82] tracking-tight text-ink sm:text-8xl lg:text-7xl xl:text-8xl">
+              VYBE
+            </h1>
+            <span
+              aria-hidden="true"
+              className="pointer-events-none select-none font-display text-[22vw] leading-none text-ink/10 sm:text-9xl lg:text-8xl xl:text-9xl"
+            >
+              01
+            </span>
+          </motion.div>
 
           <motion.p
             initial="hidden"
             animate="show"
             custom={0.2}
             variants={fadeUp}
-            className="mt-6 max-w-md text-base text-ivory/70 sm:text-lg"
+            className="mt-5 max-w-md text-base text-ink-600 sm:text-lg"
           >
             Desi roots, global vibe. Oversized tees, hoodies, and sweatshirts built for the culture —
             heavyweight fabric, bold graphics, zero compromise.
@@ -83,53 +93,95 @@ export default function Hero() {
             animate="show"
             custom={0.3}
             variants={fadeUp}
-            className="mt-9 flex flex-wrap items-center gap-4"
+            className="mt-7 flex flex-wrap gap-2"
+          >
+            {QUICK_CATEGORIES.map((c) => (
+              <Link
+                key={c.href}
+                href={c.href}
+                className="min-h-[40px] border border-ink/20 px-4 py-2 text-xs uppercase tracking-widest2 text-ink transition-colors hover:border-ink hover:bg-ink hover:text-ivory"
+              >
+                {c.label}
+              </Link>
+            ))}
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            animate="show"
+            custom={0.4}
+            variants={fadeUp}
+            className="mt-9 flex flex-wrap items-center gap-5"
           >
             <Link
               href="/new-arrivals"
-              className="inline-flex min-h-[44px] items-center justify-center bg-lime px-8 py-4 font-display text-sm uppercase tracking-widest2 text-ink transition-colors hover:bg-ivory"
+              className="inline-flex min-h-[44px] items-center justify-center bg-ink px-8 py-4 font-display text-sm uppercase tracking-widest2 text-ivory transition-colors hover:bg-lime hover:text-ink"
             >
               Shop New Arrivals
             </Link>
-            <Link
-              href="/shop"
-              className="inline-flex min-h-[44px] items-center justify-center border border-ivory/30 px-8 py-4 font-display text-sm uppercase tracking-widest2 text-ivory transition-colors hover:border-lime hover:text-lime"
-            >
-              Shop All
+            <Link href="/shop" className="group inline-flex items-center gap-3">
+              <span className="flex h-11 w-11 items-center justify-center rounded-full border border-ink/30 text-ink transition-colors group-hover:border-ink group-hover:bg-ink group-hover:text-ivory">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                  <path d="M4 2.5v11l10-5.5-10-5.5Z" />
+                </svg>
+              </span>
+              <span className="font-display text-xs uppercase tracking-widest2 text-ink">Watch Lookbook</span>
             </Link>
           </motion.div>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 1.04 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-          className="relative col-span-1 h-[60vh] overflow-hidden lg:col-span-6 lg:h-auto"
-        >
+        {/* Right: color block + model cutout */}
+        <div className="relative col-span-1 h-[62vh] px-4 pb-10 sm:px-6 lg:col-span-6 lg:h-[82vh] lg:px-8 lg:pb-0">
           <motion.div
-            style={reduceMotion ? undefined : { y: imageY, scale: imageScale }}
-            className="absolute inset-0 will-change-transform"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute inset-4 z-0 rounded-[2.5rem] bg-lime sm:inset-6"
+            aria-hidden="true"
+          />
+
+          {/* category tag list on the color block */}
+          <div className="absolute right-10 top-10 z-10 hidden flex-col items-end gap-3 sm:flex lg:right-14 lg:top-14">
+            {SIDE_TAGS.map((tag) => (
+              <Link
+                key={tag.href}
+                href={tag.href}
+                className="font-display text-sm uppercase tracking-tight text-ink/70 transition-colors hover:text-ink"
+              >
+                {tag.label}
+              </Link>
+            ))}
+          </div>
+
+          <motion.div
+            style={reduceMotion ? undefined : { y: imageY }}
+            className="absolute inset-x-0 bottom-0 z-10 h-full will-change-transform"
           >
             <Image
-              src="/products/hoodie-01.jpg"
-              alt="Model wearing a VybeTheBrand back-print hoodie"
+              src="/hero.png"
+              alt="VybeTheBrand model wearing the latest drop"
               fill
               priority
               sizes="(min-width: 1024px) 50vw, 100vw"
-              className="object-cover"
+              className="object-contain object-bottom"
             />
           </motion.div>
-          {/* burgundy corner block — asymmetric accent, not a gradient */}
-          <div className="absolute right-0 top-0 h-20 w-20 bg-burgundy sm:h-28 sm:w-28" aria-hidden="true" />
-          <div className="absolute right-4 top-4 font-display text-xs uppercase tracking-widest2 text-ivory sm:right-6 sm:top-6">
-            New
-            <br />
-            Drop
+
+          <div className="absolute bottom-2 left-8 z-10 font-display text-[10px] uppercase tracking-widest2 text-ink/40 sm:left-12">
+            Sample photography — replace before launch
           </div>
-          <div className="absolute inset-x-0 bottom-0 bg-ink/85 px-4 py-3 text-xs uppercase tracking-widest2 text-lime backdrop-blur-sm sm:px-6">
-            Sample product &amp; photography — replace before launch
+
+          {/* scroll cue */}
+          <div className="absolute bottom-6 right-6 z-10 hidden flex-col gap-2 lg:flex">
+            <a
+              href="#next-section"
+              aria-label="Scroll to next section"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-ink/20 bg-ivory text-ink transition-colors hover:border-ink"
+            >
+              ↓
+            </a>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
