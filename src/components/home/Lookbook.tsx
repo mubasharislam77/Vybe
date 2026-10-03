@@ -1,18 +1,24 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Container } from '@/components/ui/Container';
 import { ScrollSpin, ScrollDrift } from '@/components/ui/ScrollMotion';
 import { RingShape, SquareOutline } from '@/components/ui/Shapes';
+import { RevealOnScroll } from '@/components/ui/ScrollReveal';
+import { useLocalScrollProgress, ParallaxLayer } from '@/components/ui/ScrollParallax';
 
 const FRAMES = [
-  { src: '/products/street-01.jpg', alt: 'Street styling, lookbook frame one' },
-  { src: '/products/hoodie-03.jpg', alt: 'Street styling, lookbook frame two' },
-  { src: '/products/street-02.jpg', alt: 'Street styling, lookbook frame three' },
+  { src: '/products/street-01.jpg', alt: 'Street styling, lookbook frame one', distance: 36 },
+  { src: '/products/hoodie-03.jpg', alt: 'Street styling, lookbook frame two', distance: 56 },
+  { src: '/products/street-02.jpg', alt: 'Street styling, lookbook frame three', distance: 72 },
 ];
 
 export function Lookbook() {
+  const { ref, scrollYProgress } = useLocalScrollProgress<HTMLElement>();
+
   return (
-    <section className="grain relative overflow-hidden bg-ink py-16 text-ivory sm:py-24">
+    <section ref={ref} className="grain relative overflow-hidden bg-ink py-16 text-ivory sm:py-24">
       <ScrollSpin factor={0.07} className="absolute -right-16 top-0 z-0 hidden lg:block">
         <RingShape size={260} color="lime" opacity={0.15} />
       </ScrollSpin>
@@ -30,23 +36,32 @@ export function Lookbook() {
           </Link>
         </div>
 
+        {/* Each frame drifts at a different rate (36/56/72px) as the section
+            scrolls through the viewport — a classic parallax grid, live and
+            continuous rather than a one-time entrance. */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {FRAMES.map((frame, i) => (
             <div
               key={frame.src}
               className={`relative overflow-hidden ${i === 0 ? 'sm:col-span-2 sm:row-span-2 aspect-[4/5] sm:aspect-[4/5]' : 'aspect-[4/5]'}`}
             >
-              <Image
-                src={frame.src}
-                alt={frame.alt}
-                fill
-                sizes="(min-width: 640px) 33vw, 100vw"
-                className="object-cover"
-              />
+              <ParallaxLayer progress={scrollYProgress} distance={frame.distance} className="absolute -inset-y-20 inset-x-0">
+                <Image
+                  src={frame.src}
+                  alt={frame.alt}
+                  fill
+                  sizes="(min-width: 640px) 33vw, 100vw"
+                  className="object-cover"
+                />
+              </ParallaxLayer>
             </div>
           ))}
         </div>
-        <p className="mt-6 text-xs uppercase tracking-widest2 text-ivory/40">Sample photography — not final campaign imagery</p>
+        <RevealOnScroll y={10}>
+          <p className="mt-6 text-xs uppercase tracking-widest2 text-ivory/40">
+            Sample photography — not final campaign imagery
+          </p>
+        </RevealOnScroll>
       </Container>
     </section>
   );

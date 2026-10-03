@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Container } from '@/components/ui/Container';
 import { ProductCard, type ProductCardData } from '@/components/ui/ProductCard';
+import { RevealOnScroll } from '@/components/ui/ScrollReveal';
 
 export function ProductRail({
   title,
@@ -29,8 +30,10 @@ export function ProductRail({
         </div>
 
         <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">
-          {products.slice(0, 8).map((p) => (
-            <ProductCard key={p.slug} product={p} />
+          {products.slice(0, 8).map((p, i) => (
+            <RevealOnScroll key={p.slug} delay={(i % 4) * 0.07} y={36} scale={0.95}>
+              <ProductCard product={p} />
+            </RevealOnScroll>
           ))}
         </div>
 

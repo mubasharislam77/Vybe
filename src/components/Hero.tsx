@@ -2,9 +2,10 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, useTransform, useReducedMotion } from 'framer-motion';
 import { ScrollSpin, ScrollDrift } from '@/components/ui/ScrollMotion';
 import { RingShape, DiamondShape } from '@/components/ui/Shapes';
+import { useLocalScrollProgress } from '@/components/ui/ScrollParallax';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -12,8 +13,19 @@ const fadeUp = {
 };
 
 export default function Hero() {
+  const { ref, scrollYProgress } = useLocalScrollProgress<HTMLElement>(['start start', 'end start']);
+  const reduceMotion = useReducedMotion();
+
+  // As the hero scrolls out of view: the photo drifts up slower than the
+  // page (parallax) and zooms in slightly; the text column fades/rises
+  // out faster, so it clears the viewport before the image does.
+  const imageY = useTransform(scrollYProgress, [0, 1], [0, -80]);
+  const imageScale = useTransform(scrollYProgress, [0, 1], [1, 1.12]);
+  const textY = useTransform(scrollYProgress, [0, 1], [0, -120]);
+  const textOpacity = useTransform(scrollYProgress, [0, 0.6, 1], [1, 1, 0]);
+
   return (
-    <section className="relative overflow-hidden bg-ink">
+    <section ref={ref} className="relative overflow-hidden bg-ink">
       {/* thin multi-tone accent bar — the only "gradient-adjacent" move on the page, kept to a hairline */}
       <div className="flex h-1.5 w-full">
         <span className="flex-1 bg-lime" />
@@ -30,7 +42,10 @@ export default function Hero() {
       </ScrollDrift>
 
       <div className="relative mx-auto grid max-w-7xl grid-cols-1 lg:grid-cols-12">
-        <div className="relative z-10 flex flex-col justify-center px-4 py-16 sm:px-6 lg:col-span-6 lg:px-8 lg:py-28">
+        <motion.div
+          style={reduceMotion ? undefined : { y: textY, opacity: textOpacity }}
+          className="relative z-10 flex flex-col justify-center px-4 py-16 sm:px-6 lg:col-span-6 lg:px-8 lg:py-28"
+        >
           <motion.span
             initial="hidden"
             animate="show"
@@ -83,22 +98,27 @@ export default function Hero() {
               Shop All
             </Link>
           </motion.div>
-        </div>
+        </motion.div>
 
         <motion.div
           initial={{ opacity: 0, scale: 1.04 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-          className="relative col-span-1 h-[60vh] lg:col-span-6 lg:h-auto"
+          className="relative col-span-1 h-[60vh] overflow-hidden lg:col-span-6 lg:h-auto"
         >
-          <Image
-            src="/products/hoodie-01.jpg"
-            alt="Model wearing a VybeTheBrand back-print hoodie"
-            fill
-            priority
-            sizes="(min-width: 1024px) 50vw, 100vw"
-            className="object-cover"
-          />
+          <motion.div
+            style={reduceMotion ? undefined : { y: imageY, scale: imageScale }}
+            className="absolute inset-0"
+          >
+            <Image
+              src="/products/hoodie-01.jpg"
+              alt="Model wearing a VybeTheBrand back-print hoodie"
+              fill
+              priority
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              className="object-cover"
+            />
+          </motion.div>
           {/* burgundy corner block — asymmetric accent, not a gradient */}
           <div className="absolute right-0 top-0 h-20 w-20 bg-burgundy sm:h-28 sm:w-28" aria-hidden="true" />
           <div className="absolute right-4 top-4 font-display text-xs uppercase tracking-widest2 text-ivory sm:right-6 sm:top-6">
