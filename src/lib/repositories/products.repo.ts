@@ -1,4 +1,4 @@
-import { ObjectId, type Document, type Filter } from 'mongodb';
+import { ObjectId, type ClientSession, type Document, type Filter } from 'mongodb';
 import { products, categories, productCollections } from '@/lib/db/collections';
 import type { Product } from '@/types/domain';
 import type { ListingQuery } from '@/lib/validation/product';
@@ -194,6 +194,12 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
 export async function getProductBySlugForAdmin(slug: string): Promise<Product | null> {
   const col = await products();
   return col.findOne({ slug });
+}
+
+/** Reads within the checkout transaction's session for snapshot-consistent price/stock. */
+export async function getProductByVariantSku(sku: string, session: ClientSession): Promise<Product | null> {
+  const col = await products();
+  return col.findOne({ 'variants.sku': sku, status: 'published' }, { session });
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
