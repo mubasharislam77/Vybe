@@ -1,7 +1,6 @@
 'use server';
 
 import { headers } from 'next/headers';
-import { after } from 'next/server';
 import { auth } from '@/auth';
 import { checkoutInputSchema } from '@/lib/validation/checkout';
 import { placeOrder, CheckoutError } from '@/lib/services/checkout.service';
@@ -41,15 +40,19 @@ export async function submitCheckout(rawInput: unknown): Promise<CheckoutActionR
   try {
     const { order } = await placeOrder(parsed.data, customerId);
 
-    // Attempt immediate delivery after the response is sent to the
-    // customer — `after()` keeps the function alive long enough for this
-    // to finish without making the customer wait for it (unlike an
-    // unawaited promise, which Vercel can freeze mid-flight). The order
-    // itself is already durably saved regardless of what happens here;
-    // if this attempt fails or doesn't run, the cron sweep picks it up
-    // within 5 minutes — this is purely a latency optimization, not the
-    // only delivery path.
-    after(() => drainNotificationOutbox(5));
+    // Send the order notification right here, in the same request as
+    // checkout — straightforward and easy to reason about. The order
+    // itself is already durably saved before this runs, so a transient
+    // email failure here never loses the order or makes a successful
+    // checkout look failed to the customer (caught separately below,
+    // never thrown back into the outer catch). The outbox row written by
+    // placeOrder still exists either way, so nothing is lost even if this
+    // fails — it's just not retried automatically without the cron sweep.
+    try {
+      await drainNotificationOutbox(5);
+    } catch (notifyErr) {
+      console.error('Order notification send failed (order still placed successfully):', notifyErr);
+    }
 
     return {
       success: true,
