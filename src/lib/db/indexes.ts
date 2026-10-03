@@ -69,4 +69,7 @@ export async function createAllIndexes(db: Db) {
 
   const rateLimit = db.collection('rate_limit_buckets');
   await rateLimit.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0, name: 'ttl_expiry' });
+
+  const carts = db.collection('carts');
+  await carts.createIndex({ customerId: 1 }, { unique: true, name: 'uniq_customer' });
 }

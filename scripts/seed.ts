@@ -27,7 +27,6 @@ function parseFlags(argv: string[]) {
   return flags;
 }
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 const DEMO_IMAGES = [
   'hoodie-01.jpg',
   'hoodie-02.jpg',
@@ -41,7 +40,10 @@ const DEMO_IMAGES = [
 ];
 
 function img(name: string, alt: string, order = 0) {
-  return { url: `${SITE_URL}/products/${name}`, publicId: `seed/${name}`, alt, order };
+  // Relative path into /public — these are local demo files, not a remote
+  // host, so next/image needs no remotePatterns entry for them (unlike
+  // real Cloudinary-hosted admin uploads, which do — see next.config.mjs).
+  return { url: `/products/${name}`, publicId: `seed/${name}`, alt, order };
 }
 
 const SIZES = ['S', 'M', 'L', 'XL', 'XXL'];

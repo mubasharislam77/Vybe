@@ -13,6 +13,7 @@ import type {
   AuditLogEntry,
   StoreSettings,
   RateLimitBucket,
+  Cart,
 } from '@/types/domain';
 
 export async function products(): Promise<Collection<Product>> {
@@ -50,4 +51,7 @@ export async function storeSettings(): Promise<Collection<StoreSettings>> {
 }
 export async function rateLimitBuckets(): Promise<Collection<RateLimitBucket>> {
   return (await getDb()).collection<RateLimitBucket>('rate_limit_buckets');
+}
+export async function carts(): Promise<Collection<Cart>> {
+  return (await getDb()).collection<Cart>('carts');
 }

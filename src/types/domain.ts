@@ -259,6 +259,18 @@ export interface StoreSettings {
   updatedAt: Date;
 }
 
+export interface CartItem {
+  sku: string;
+  quantity: number;
+}
+
+export interface Cart {
+  _id: ObjectId;
+  customerId: ObjectId;
+  items: CartItem[];
+  updatedAt: Date;
+}
+
 export interface RateLimitBucket {
   _id: string;
   count: number;
