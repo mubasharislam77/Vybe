@@ -184,12 +184,16 @@ Not started yet, in roughly the order I'd build them:
   channel) — see below. No card required for the free tier.
 - **Meta WhatsApp Cloud API** (optional second notification channel) —
   see below, and read the warning first.
-- **Upstash QStash (recommended if using WhatsApp)** — triggers the
-  notification worker in near-real-time. Vercel's own Cron Jobs are
-  daily-only on the Hobby plan, which is too slow for order alerts;
-  `vercel.json`'s cron is a 5-minute backstop sweep that needs a Pro plan
-  to actually run that often. Not needed for email-only notifications if
-  a few minutes' delay is acceptable.
+- **Vercel Cron** (included, no extra service) — the notification worker's
+  primary trigger is actually `next/server`'s `after()`, called right after
+  checkout completes (see `checkout.actions.ts`), so delivery happens
+  within seconds in the common case without needing cron at all.
+  `vercel.json`'s cron (`0 18 * * *`, once daily) is purely a reliability
+  backstop for whatever that immediate attempt misses — fine on the free
+  Hobby plan, which only allows daily schedules. If you want tighter
+  backstop timing than once a day, either upgrade to Pro (unlocks
+  frequent cron schedules, e.g. `*/5 * * * *`) or point **Upstash QStash**
+  (free tier) at `/api/cron/notification-worker` instead/in addition.
 
 ### Email setup (Resend) — recommended, start here
 
