@@ -217,6 +217,17 @@ export async function getFilterFacets(): Promise<FilterFacets> {
   };
 }
 
+export async function getDistinctTags(): Promise<string[]> {
+  const col = await products();
+  const tags = await col.distinct('tags', { status: 'published' });
+  return (tags as string[]).sort();
+}
+
+export async function countPublishedProducts(): Promise<number> {
+  const col = await products();
+  return col.countDocuments({ status: 'published' });
+}
+
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   const col = await products();
   return col.findOne({ slug, status: 'published' });
