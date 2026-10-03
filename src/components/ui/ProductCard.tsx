@@ -1,7 +1,10 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { PriceTag } from './PriceTag';
 import { Badge } from './Badge';
+import { useWishlist } from '@/lib/wishlist/wishlist-context';
 
 export interface ProductCardData {
   slug: string;
@@ -15,32 +18,64 @@ export interface ProductCardData {
   fulfillment: 'ready_stock' | 'made_to_order';
 }
 
+function priorityBadge(product: ProductCardData): { label: string; tone: 'burgundy' | 'lime' | 'outline' } | null {
+  if (product.compareAtMinor) return { label: 'Sale', tone: 'burgundy' };
+  if (product.featured) return { label: 'Featured', tone: 'lime' };
+  if (product.fulfillment === 'made_to_order') return { label: 'Made to order', tone: 'outline' };
+  return null;
+}
+
 export function ProductCard({ product }: { product: ProductCardData }) {
+  const { has, toggle } = useWishlist();
+  const badge = priorityBadge(product);
+  const wishlisted = has(product.slug);
+
   return (
-    <Link href={`/products/${product.slug}`} className="group block">
-      <div className="relative aspect-[3/4] overflow-hidden bg-ink/5">
-        <Image
-          src={product.imageUrl}
-          alt={product.imageAlt}
-          fill
-          sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
-          className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-        />
-        <div className="absolute left-2 top-2 flex flex-col gap-1">
-          {product.featured && <Badge tone="lime">Featured</Badge>}
-          {product.fulfillment === 'made_to_order' && <Badge tone="outline">Made to order</Badge>}
-          {product.compareAtMinor && <Badge tone="burgundy">Sale</Badge>}
+    <div className="group relative">
+      <Link href={`/products/${product.slug}`} className="block">
+        <div className="relative aspect-[3/4] overflow-hidden bg-ink/5">
+          <Image
+            src={product.imageUrl}
+            alt={product.imageAlt}
+            fill
+            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+            className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.06] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+          />
+          <div
+            className="pointer-events-none absolute inset-0 border-2 border-lime opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+            aria-hidden="true"
+          />
+          {badge && (
+            <div className="absolute left-2 top-2">
+              <Badge tone={badge.tone}>{badge.label}</Badge>
+            </div>
+          )}
         </div>
-      </div>
-      <div className="mt-3 space-y-1">
-        <h3 className="text-sm text-ink">{product.title}</h3>
-        <PriceTag
-          minPriceMinor={product.minPriceMinor}
-          maxPriceMinor={product.maxPriceMinor}
-          compareAtMinor={product.compareAtMinor}
-          size="sm"
-        />
-      </div>
-    </Link>
+        <div className="mt-3 space-y-1">
+          <h3 className="text-sm text-ink transition-colors group-hover:text-burgundy">{product.title}</h3>
+          <PriceTag
+            minPriceMinor={product.minPriceMinor}
+            maxPriceMinor={product.maxPriceMinor}
+            compareAtMinor={product.compareAtMinor}
+            size="sm"
+          />
+        </div>
+      </Link>
+
+      <button
+        type="button"
+        aria-label={wishlisted ? `Remove ${product.title} from wishlist` : `Add ${product.title} to wishlist`}
+        aria-pressed={wishlisted}
+        onClick={(e) => {
+          e.preventDefault();
+          toggle(product.slug);
+        }}
+        className={`absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full bg-ivory/90 text-base shadow-sm backdrop-blur-sm transition-opacity sm:opacity-0 sm:group-hover:opacity-100 ${
+          wishlisted ? 'text-burgundy opacity-100' : 'text-ink'
+        }`}
+      >
+        {wishlisted ? '♥' : '♡'}
+      </button>
+    </div>
   );
 }

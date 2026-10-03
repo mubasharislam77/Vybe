@@ -63,9 +63,12 @@ export function FilterPanel({
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-7 border border-ink/10 bg-ivory p-5">
       <fieldset>
-        <legend className="mb-3 font-display text-xs uppercase tracking-widest2 text-ink">Size</legend>
+        <legend className="mb-3 flex items-center gap-2 font-display text-xs uppercase tracking-widest2 text-ink">
+          <span className="h-1.5 w-1.5 rounded-full bg-lime" aria-hidden="true" />
+          Size
+        </legend>
         <div className="flex flex-wrap gap-2">
           {options.sizes.map((size) => {
             const active = draft.size.includes(size);
@@ -86,8 +89,11 @@ export function FilterPanel({
         </div>
       </fieldset>
 
-      <fieldset>
-        <legend className="mb-3 font-display text-xs uppercase tracking-widest2 text-ink">Color</legend>
+      <fieldset className="border-t border-ink/10 pt-6">
+        <legend className="mb-3 flex items-center gap-2 font-display text-xs uppercase tracking-widest2 text-ink">
+          <span className="h-1.5 w-1.5 rounded-full bg-lime" aria-hidden="true" />
+          Color
+        </legend>
         <div className="flex flex-wrap gap-3">
           {options.colors.map((color) => {
             const active = draft.color.includes(color.name);
@@ -115,31 +121,43 @@ export function FilterPanel({
         </div>
       </fieldset>
 
-      <fieldset>
-        <legend className="mb-3 font-display text-xs uppercase tracking-widest2 text-ink">Price (PKR)</legend>
+      <fieldset className="border-t border-ink/10 pt-6">
+        <legend className="mb-3 flex items-center gap-2 font-display text-xs uppercase tracking-widest2 text-ink">
+          <span className="h-1.5 w-1.5 rounded-full bg-lime" aria-hidden="true" />
+          Price (PKR)
+        </legend>
         <div className="flex items-center gap-3">
-          <input
-            type="number"
-            inputMode="numeric"
-            placeholder="Min"
-            value={draft.minPriceMinor ? Number(draft.minPriceMinor) / 100 : ''}
-            onChange={(e) => setDraft((d) => ({ ...d, minPriceMinor: e.target.value ? String(Math.round(Number(e.target.value) * 100)) : '' }))}
-            className="min-h-[44px] w-full border border-ink/20 bg-ivory px-3 text-sm focus:border-ink focus:outline-none"
-          />
+          <div className="relative w-full">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-ink-400">Rs</span>
+            <input
+              type="number"
+              inputMode="numeric"
+              placeholder="Min"
+              value={draft.minPriceMinor ? Number(draft.minPriceMinor) / 100 : ''}
+              onChange={(e) => setDraft((d) => ({ ...d, minPriceMinor: e.target.value ? String(Math.round(Number(e.target.value) * 100)) : '' }))}
+              className="min-h-[44px] w-full border border-ink/20 bg-ivory py-2 pl-8 pr-2 text-sm transition-colors hover:border-ink focus:border-ink focus:outline-none"
+            />
+          </div>
           <span className="text-ink-400">–</span>
-          <input
-            type="number"
-            inputMode="numeric"
-            placeholder="Max"
-            value={draft.maxPriceMinor ? Number(draft.maxPriceMinor) / 100 : ''}
-            onChange={(e) => setDraft((d) => ({ ...d, maxPriceMinor: e.target.value ? String(Math.round(Number(e.target.value) * 100)) : '' }))}
-            className="min-h-[44px] w-full border border-ink/20 bg-ivory px-3 text-sm focus:border-ink focus:outline-none"
-          />
+          <div className="relative w-full">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-ink-400">Rs</span>
+            <input
+              type="number"
+              inputMode="numeric"
+              placeholder="Max"
+              value={draft.maxPriceMinor ? Number(draft.maxPriceMinor) / 100 : ''}
+              onChange={(e) => setDraft((d) => ({ ...d, maxPriceMinor: e.target.value ? String(Math.round(Number(e.target.value) * 100)) : '' }))}
+              className="min-h-[44px] w-full border border-ink/20 bg-ivory py-2 pl-8 pr-2 text-sm transition-colors hover:border-ink focus:border-ink focus:outline-none"
+            />
+          </div>
         </div>
       </fieldset>
 
-      <fieldset>
-        <legend className="mb-3 font-display text-xs uppercase tracking-widest2 text-ink">Availability</legend>
+      <fieldset className="border-t border-ink/10 pt-6">
+        <legend className="mb-3 flex items-center gap-2 font-display text-xs uppercase tracking-widest2 text-ink">
+          <span className="h-1.5 w-1.5 rounded-full bg-lime" aria-hidden="true" />
+          Availability
+        </legend>
         <div className="flex flex-col gap-2">
           {[
             { value: 'all', label: 'All' },
@@ -160,7 +178,7 @@ export function FilterPanel({
         </div>
       </fieldset>
 
-      <div className="flex gap-3">
+      <div className="flex gap-3 border-t border-ink/10 pt-6">
         <Button variant="primary" size="sm" onClick={apply} className="flex-1">
           Apply
         </Button>

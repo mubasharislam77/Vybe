@@ -17,15 +17,15 @@ export function SortSelect({ basePath }: { basePath: string }) {
   const value = current.sort ?? 'newest';
 
   return (
-    <label className="flex items-center gap-2 text-sm">
-      <span className="text-ink-400">Sort</span>
+    <label className="relative flex items-center">
+      <span className="sr-only">Sort products</span>
       <select
         value={value}
         onChange={(e) => {
           const qs = buildQueryString(current, { sort: e.target.value });
           router.push(`${basePath}?${qs}`);
         }}
-        className="min-h-[44px] border border-ink/20 bg-ivory px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
+        className="min-h-[44px] appearance-none border border-ink/20 bg-ivory py-2 pl-4 pr-9 font-display text-xs uppercase tracking-widest2 text-ink transition-colors hover:border-ink focus:border-ink focus:outline-none"
       >
         {OPTIONS.map((o) => (
           <option key={o.value} value={o.value}>
@@ -33,6 +33,18 @@ export function SortSelect({ basePath }: { basePath: string }) {
           </option>
         ))}
       </select>
+      <svg
+        width="10"
+        height="10"
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        aria-hidden="true"
+        className="pointer-events-none absolute right-3 text-ink"
+      >
+        <path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
     </label>
   );
 }
