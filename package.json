@@ -16,8 +16,6 @@
     "provision:admin": "tsx scripts/provision-admin.ts"
   },
   "dependencies": {
-    "@react-three/drei": "^10.0.6",
-    "@react-three/fiber": "^9.1.2",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.5.1",
     "framer-motion": "^11.15.0",
@@ -27,7 +25,6 @@
     "next-auth": "5.0.0-beta.32",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "three": "^0.171.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {
@@ -35,7 +32,6 @@
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@types/three": "^0.171.0",
     "autoprefixer": "^10.4.20",
     "dotenv": "^16.4.7",
     "postcss": "^8.5.1",
