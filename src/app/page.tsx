@@ -18,7 +18,7 @@ import {
   getDistinctTags,
   countPublishedProducts,
 } from '@/lib/repositories/products.repo';
-import { getCategoryNav, toProductCardData } from '@/lib/services/catalog.service';
+import { getCategoryNav, toProductCardData, productToCardData } from '@/lib/services/catalog.service';
 import { getStoreSettings } from '@/lib/repositories/settings.repo';
 import { listingQuerySchema } from '@/lib/validation/product';
 
@@ -32,17 +32,7 @@ export default async function Home() {
     countPublishedProducts(),
   ]);
 
-  const featuredCards = featured.map((p) => ({
-    slug: p.slug,
-    title: p.title,
-    imageUrl: p.images[0]?.url ?? '/products/tee-01.jpg',
-    imageAlt: p.images[0]?.alt ?? p.title,
-    minPriceMinor: Math.min(...p.variants.map((v) => v.priceMinor)),
-    maxPriceMinor: Math.max(...p.variants.map((v) => v.priceMinor)),
-    compareAtMinor: p.variants.find((v) => v.compareAtPriceMinor)?.compareAtPriceMinor ?? null,
-    featured: p.featured,
-    fulfillment: p.fulfillment,
-  }));
+  const featuredCards = featured.map(productToCardData);
 
   return (
     <AmbientScrollProvider>

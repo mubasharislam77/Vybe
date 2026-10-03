@@ -1,5 +1,5 @@
 import { listCategoryTree } from '@/lib/repositories/categories.repo';
-import type { Category } from '@/types/domain';
+import type { Category, Product } from '@/types/domain';
 import type { ListingItem } from '@/lib/repositories/products.repo';
 import type { ProductCardData } from '@/components/ui/ProductCard';
 
@@ -35,5 +35,21 @@ export function toProductCardData(item: ListingItem): ProductCardData {
     compareAtMinor: item.matchedCompareAtMinPrice ?? null,
     featured: item.featured,
     fulfillment: item.fulfillment,
+  };
+}
+
+/** Same mapping as toProductCardData, from a full Product doc (e.g. listFeatured results) rather than an aggregation ListingItem. */
+export function productToCardData(product: Product): ProductCardData {
+  const prices = product.variants.map((v) => v.priceMinor);
+  return {
+    slug: product.slug,
+    title: product.title,
+    imageUrl: product.images[0]?.url ?? '/products/tee-01.jpg',
+    imageAlt: product.images[0]?.alt ?? product.title,
+    minPriceMinor: Math.min(...prices),
+    maxPriceMinor: Math.max(...prices),
+    compareAtMinor: product.variants.find((v) => v.compareAtPriceMinor)?.compareAtPriceMinor ?? null,
+    featured: product.featured,
+    fulfillment: product.fulfillment,
   };
 }

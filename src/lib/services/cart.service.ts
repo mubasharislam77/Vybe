@@ -8,6 +8,8 @@ export interface CartLineView {
   slug: string;
   size: string;
   colorName: string;
+  colorSwatchHex: string | null;
+  compareAtPriceMinor: number | null;
   imageUrl: string | null;
   unitPriceMinor: number;
   lineTotalMinor: number;
@@ -47,6 +49,8 @@ export async function resolveCartView(items: CartItem[]): Promise<CartLineView[]
         slug: '',
         size: '',
         colorName: '',
+        colorSwatchHex: null,
+        compareAtPriceMinor: null,
         imageUrl: null,
         unitPriceMinor: 0,
         lineTotalMinor: 0,
@@ -69,6 +73,8 @@ export async function resolveCartView(items: CartItem[]): Promise<CartLineView[]
       slug: product.slug,
       size: variant.size,
       colorName: variant.colorName,
+      colorSwatchHex: variant.colorSwatchHex,
+      compareAtPriceMinor: variant.compareAtPriceMinor ?? null,
       imageUrl: variant.images[0]?.url ?? product.images[0]?.url ?? null,
       unitPriceMinor: variant.priceMinor,
       lineTotalMinor: variant.priceMinor * item.quantity,

@@ -1,129 +1,87 @@
 'use client';
 
-import Image from 'next/image';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/cart/cart-context';
 import { useCartView } from '@/lib/cart/use-cart-view';
-import { formatPKR } from '@/lib/utils/money';
-import { Button, LinkButton } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { CartLineItem } from './CartLineItem';
+import { CartSummary } from './CartSummary';
+import { EmptyCart } from './EmptyCart';
+import { RevealOnScroll } from '@/components/ui/ScrollReveal';
+import { ProductCard, type ProductCardData } from '@/components/ui/ProductCard';
 
-export function CartPageClient() {
+export function CartPageClient({ crossSell }: { crossSell: ProductCardData[] }) {
   const router = useRouter();
   const { setQuantity, removeItem, isLoaded } = useCart();
   const { lines, isLoading } = useCartView();
 
-  if (!isLoaded || isLoading) {
-    return (
-      <div className="flex flex-col gap-4">
-        {[0, 1].map((i) => (
-          <Skeleton key={i} className="h-28 w-full" />
-        ))}
-      </div>
-    );
-  }
-
-  if (lines.length === 0) {
-    return (
-      <div className="flex flex-col items-center gap-4 py-24 text-center">
-        <p className="font-display text-xl uppercase tracking-widest2 text-ink">Your cart is empty</p>
-        <LinkButton href="/shop" variant="primary" size="md">
-          Start Shopping
-        </LinkButton>
-      </div>
-    );
-  }
-
+  const loading = !isLoaded || isLoading;
   const subtotal = lines.reduce((sum, l) => sum + l.lineTotalMinor, 0);
+  const itemCount = lines.reduce((sum, l) => sum + l.quantity, 0);
   const hasUnavailable = lines.some((l) => !l.available);
 
   return (
-    <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_320px]">
-      <ul className="flex flex-col divide-y divide-ink/10">
-        {lines.map((line) => (
-          <li key={line.sku} className="flex gap-4 py-6">
-            <div className="relative h-28 w-24 shrink-0 overflow-hidden bg-ink/5">
-              {line.imageUrl && <Image src={line.imageUrl} alt={line.title} fill sizes="96px" className="object-cover" />}
-            </div>
-            <div className="flex flex-1 flex-col justify-between">
-              <div>
-                {line.slug ? (
-                  <Link href={`/products/${line.slug}`} className="text-sm font-medium text-ink hover:underline">
-                    {line.title}
-                  </Link>
-                ) : (
-                  <p className="text-sm font-medium text-burgundy">{line.title}</p>
-                )}
-                <p className="text-xs text-ink-400">
-                  {line.size} / {line.colorName}
-                </p>
-                {!line.available && (
-                  <p className="mt-1 text-xs text-burgundy" role="alert">
-                    {line.productStatus === 'not_found'
-                      ? 'No longer available'
-                      : `Only limited stock left${line.availableStock !== null ? ` (${line.availableStock})` : ''}`}
-                  </p>
-                )}
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex h-9 items-stretch border border-ink/20 text-sm">
-                  <button
-                    type="button"
-                    aria-label={`Decrease quantity of ${line.title}`}
-                    onClick={() => setQuantity(line.sku, line.quantity - 1)}
-                    className="w-9"
-                  >
-                    −
-                  </button>
-                  <span className="flex w-9 items-center justify-center" aria-live="polite">
-                    {line.quantity}
-                  </span>
-                  <button
-                    type="button"
-                    aria-label={`Increase quantity of ${line.title}`}
-                    onClick={() => setQuantity(line.sku, line.quantity + 1)}
-                    className="w-9"
-                  >
-                    +
-                  </button>
-                </div>
-                <p className="text-sm text-ink">{formatPKR(line.lineTotalMinor)}</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              aria-label={`Remove ${line.title} from cart`}
-              onClick={() => removeItem(line.sku)}
-              className="h-11 w-11 shrink-0 self-start text-xl text-ink-400 hover:text-burgundy"
-            >
-              ×
-            </button>
-          </li>
-        ))}
-      </ul>
+    <div className="flex flex-col gap-16">
+      <div>
+        <RevealOnScroll y={12}>
+          <h1 className="font-display text-4xl uppercase tracking-tight text-ink sm:text-5xl">Your Cart</h1>
+          {!loading && lines.length > 0 && (
+            <p className="mt-2 text-sm text-ink-400">
+              {itemCount} item{itemCount === 1 ? '' : 's'} in your cart
+            </p>
+          )}
+        </RevealOnScroll>
 
-      <div className="h-fit border border-ink/10 p-6">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-ink-600">Subtotal</span>
-          <span className="text-ink">{formatPKR(subtotal)}</span>
+        <div className="mt-8">
+          {loading ? (
+            <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_340px]">
+              <div className="flex flex-col gap-4">
+                {[0, 1].map((i) => (
+                  <Skeleton key={i} className="h-36 w-full" />
+                ))}
+              </div>
+              <Skeleton className="h-64 w-full" />
+            </div>
+          ) : lines.length === 0 ? (
+            <EmptyCart />
+          ) : (
+            <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_340px]">
+              <ul className="flex flex-col gap-4">
+                {lines.map((line) => (
+                  <CartLineItem
+                    key={line.sku}
+                    line={line}
+                    onSetQuantity={(q) => setQuantity(line.sku, q)}
+                    onRemove={() => removeItem(line.sku)}
+                  />
+                ))}
+              </ul>
+
+              <CartSummary
+                subtotal={subtotal}
+                itemCount={itemCount}
+                hasUnavailable={hasUnavailable}
+                onCheckout={() => router.push('/checkout')}
+              />
+            </div>
+          )}
         </div>
-        <p className="mt-2 text-xs text-ink-400">Shipping and discounts calculated at checkout.</p>
-        {hasUnavailable && (
-          <p className="mt-3 text-xs text-burgundy" role="alert">
-            Remove unavailable items before checking out.
-          </p>
-        )}
-        <Button
-          variant="primary"
-          size="lg"
-          className="mt-6 w-full"
-          disabled={hasUnavailable}
-          onClick={() => router.push('/checkout')}
-        >
-          Checkout
-        </Button>
       </div>
+
+      {!loading && crossSell.length > 0 && (
+        <div className="border-t border-ink/10 pt-4">
+          <h2 className="mb-8 font-display text-2xl uppercase tracking-widest2 text-ink sm:text-3xl">
+            {lines.length === 0 ? 'Shop the Drop' : 'You Might Also Like'}
+          </h2>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-4">
+            {crossSell.slice(0, 4).map((p) => (
+              <RevealOnScroll key={p.slug} y={24} scale={0.96}>
+                <ProductCard product={p} />
+              </RevealOnScroll>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
