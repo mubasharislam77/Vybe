@@ -108,7 +108,7 @@ export default function Hero() {
         >
           <motion.div
             style={reduceMotion ? undefined : { y: imageY, scale: imageScale }}
-            className="absolute inset-0"
+            className="absolute inset-0 will-change-transform"
           >
             <Image
               src="/products/hoodie-01.jpg"

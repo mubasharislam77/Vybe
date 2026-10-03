@@ -9,9 +9,9 @@ import { RevealOnScroll } from '@/components/ui/ScrollReveal';
 import { useLocalScrollProgress, ParallaxLayer } from '@/components/ui/ScrollParallax';
 
 const FRAMES = [
-  { src: '/products/street-01.jpg', alt: 'Street styling, lookbook frame one', distance: 36 },
-  { src: '/products/hoodie-03.jpg', alt: 'Street styling, lookbook frame two', distance: 56 },
-  { src: '/products/street-02.jpg', alt: 'Street styling, lookbook frame three', distance: 72 },
+  { src: '/products/street-01.jpg', alt: 'Street styling, lookbook frame one', distance: 14 },
+  { src: '/products/hoodie-03.jpg', alt: 'Street styling, lookbook frame two', distance: 22 },
+  { src: '/products/street-02.jpg', alt: 'Street styling, lookbook frame three', distance: 28 },
 ];
 
 export function Lookbook() {
@@ -25,7 +25,7 @@ export function Lookbook() {
       <ScrollDrift factor={0.1} axis="y" className="absolute bottom-0 left-[4%] z-0 hidden sm:block">
         <SquareOutline size={120} color="ivory" opacity={0.08} />
       </ScrollDrift>
-      <Container className="relative">
+      <Container className="relative z-10">
         <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="mb-2 font-display text-xs uppercase tracking-widest2 text-lime">The Lookbook</p>
@@ -36,16 +36,23 @@ export function Lookbook() {
           </Link>
         </div>
 
-        {/* Each frame drifts at a different rate (36/56/72px) as the section
-            scrolls through the viewport — a classic parallax grid, live and
-            continuous rather than a one-time entrance. */}
+        {/* Each frame drifts at a different, modest rate (14/22/28px) as the
+            section scrolls through the viewport — a parallax grid, kept
+            small on purpose: the earlier, larger-offset version forced a
+            bigger image bleed (more pixels to paint per frame) and sat
+            under the grain overlay's mix-blend-mode layer, which is
+            expensive to recompute against continuously moving content. */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {FRAMES.map((frame, i) => (
             <div
               key={frame.src}
               className={`relative overflow-hidden ${i === 0 ? 'sm:col-span-2 sm:row-span-2 aspect-[4/5] sm:aspect-[4/5]' : 'aspect-[4/5]'}`}
             >
-              <ParallaxLayer progress={scrollYProgress} distance={frame.distance} className="absolute -inset-y-20 inset-x-0">
+              <ParallaxLayer
+                progress={scrollYProgress}
+                distance={frame.distance}
+                className="absolute -inset-y-8 inset-x-0 will-change-transform"
+              >
                 <Image
                   src={frame.src}
                   alt={frame.alt}
