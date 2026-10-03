@@ -79,6 +79,11 @@ function variantMatchCondition(query: ListingQuery): Record<string, unknown> {
   } else if (query.availability === 'made_to_order') {
     clauses.push({ $eq: ['$fulfillment', 'made_to_order'] });
   }
+  if (query.onSale) {
+    clauses.push({
+      $and: [{ $ne: ['$$this.compareAtPriceMinor', null] }, { $gt: ['$$this.compareAtPriceMinor', '$$this.priceMinor'] }],
+    });
+  }
 
   if (clauses.length === 0) return { $literal: true };
   return clauses.length === 1 ? clauses[0] : { $and: clauses };
@@ -184,6 +189,32 @@ export async function listProducts(query: ListingQuery): Promise<ListingResult> 
       : null;
 
   return { items: page, nextCursor };
+}
+
+export interface FilterFacets {
+  sizes: string[];
+  colors: { name: string; hex: string }[];
+}
+
+const SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+
+export async function getFilterFacets(): Promise<FilterFacets> {
+  const col = await products();
+  const [sizes, colorDocs] = await Promise.all([
+    col.distinct('variants.size', { status: 'published' }),
+    col
+      .aggregate([
+        { $match: { status: 'published' } },
+        { $unwind: '$variants' },
+        { $group: { _id: '$variants.colorName', hex: { $first: '$variants.colorSwatchHex' } } },
+      ])
+      .toArray(),
+  ]);
+
+  return {
+    sizes: (sizes as string[]).sort((a, b) => SIZE_ORDER.indexOf(a) - SIZE_ORDER.indexOf(b)),
+    colors: colorDocs.map((d) => ({ name: d._id as string, hex: d.hex as string })),
+  };
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {

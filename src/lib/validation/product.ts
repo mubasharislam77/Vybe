@@ -60,17 +60,27 @@ export type ProductInput = z.infer<typeof productInputSchema>;
 
 export const SORT_OPTIONS = ['newest', 'price_asc', 'price_desc', 'best_selling', 'relevance'] as const;
 
+/** Next.js gives a plain string for `?size=M` but an array for `?size=M&size=L` — normalize both to an array. */
+const stringOrArray = z
+  .union([z.string(), z.array(z.string())])
+  .optional()
+  .transform((v) => (v === undefined ? undefined : (Array.isArray(v) ? v : [v]).map((s) => s.trim()).filter(Boolean)));
+
 export const listingQuerySchema = z.object({
   category: z.string().trim().optional(),
   collection: z.string().trim().optional(),
   audience: z.enum(['men', 'women', 'unisex']).optional(),
   tag: z.string().trim().optional(),
-  size: z.array(z.string().trim()).optional(),
-  color: z.array(z.string().trim()).optional(),
+  size: stringOrArray,
+  color: stringOrArray,
   fit: z.string().trim().optional(),
   minPriceMinor: z.coerce.number().int().min(0).optional(),
   maxPriceMinor: z.coerce.number().int().min(0).optional(),
   availability: z.enum(['in_stock', 'made_to_order', 'all']).optional(),
+  onSale: z
+    .string()
+    .optional()
+    .transform((v) => v === 'true'),
   q: z.string().trim().max(100).optional(),
   sort: z.enum(SORT_OPTIONS).optional(),
   cursor: z.string().optional(),
