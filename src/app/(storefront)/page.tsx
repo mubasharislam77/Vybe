@@ -1,6 +1,4 @@
 import { AmbientScrollProvider } from '@/components/ui/AmbientScrollProvider';
-import SiteHeader from '@/components/layout/SiteHeader';
-import SiteFooter from '@/components/layout/SiteFooter';
 import Hero from '@/components/Hero';
 import { ScrollMarqueeBand } from '@/components/home/ScrollMarqueeBand';
 import { FeaturedCategories } from '@/components/home/FeaturedCategories';
@@ -36,27 +34,23 @@ export default async function Home() {
 
   return (
     <AmbientScrollProvider>
-      <SiteHeader />
-      <main>
-        <Hero />
-        <ScrollMarqueeBand text="VYBE • NEW DROP • DESI ROOTS, GLOBAL VIBE" tone="lime" />
-        <FeaturedCategories categories={categories} />
-        <ProductRail
-          title="Latest Drop"
-          description="Monsoon Drop — the season's first capsule."
-          viewAllHref="/collections/monsoon-drop"
-          products={latestDrop.items.map(toProductCardData)}
-        />
-        <Lookbook />
-        <TagExplorer tags={tags} />
-        <ShopByAudience />
-        <ProductRail title="Featured" viewAllHref="/shop" products={featuredCards} />
-        <StatsBand productCount={productCount} />
-        <BrandStory />
-        <ShoppingInfo settings={settings} />
-        <ClosingCTA settings={settings} />
-      </main>
-      <SiteFooter />
+      <Hero />
+      <ScrollMarqueeBand text="VYBE • NEW DROP • DESI ROOTS, GLOBAL VIBE" tone="lime" />
+      <FeaturedCategories categories={categories} />
+      <ProductRail
+        title="Latest Drop"
+        description="Monsoon Drop — the season's first capsule."
+        viewAllHref="/collections/monsoon-drop"
+        products={latestDrop.items.map(toProductCardData)}
+      />
+      <Lookbook />
+      <TagExplorer tags={tags} />
+      <ShopByAudience />
+      <ProductRail title="Featured" viewAllHref="/shop" products={featuredCards} />
+      <StatsBand productCount={productCount} />
+      <BrandStory />
+      <ShoppingInfo settings={settings} />
+      <ClosingCTA settings={settings} />
     </AmbientScrollProvider>
   );
 }
