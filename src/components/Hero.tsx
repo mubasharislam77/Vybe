@@ -158,7 +158,7 @@ export default function Hero() {
             className="absolute inset-x-0 bottom-0 z-10 h-full will-change-transform"
           >
             <Image
-              src="/hero.png"
+              src="/hero2.png"
               alt="VybeTheBrand model wearing the latest drop"
               fill
               priority
