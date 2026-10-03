@@ -206,7 +206,7 @@ export interface Review {
   createdAt: Date;
 }
 
-export type NotificationChannel = 'whatsapp';
+export type NotificationChannel = 'whatsapp' | 'email';
 export type NotificationStatus = 'pending' | 'provider_accepted' | 'delivered' | 'failed';
 
 export interface NotificationOutboxEntry {

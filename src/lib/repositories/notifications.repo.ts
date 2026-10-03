@@ -1,12 +1,13 @@
 import { ObjectId, type ClientSession } from 'mongodb';
 import { notificationOutbox } from '@/lib/db/collections';
-import type { NotificationOutboxEntry, NotificationStatus } from '@/types/domain';
+import type { NotificationOutboxEntry, NotificationStatus, NotificationChannel } from '@/types/domain';
 
 const MAX_ATTEMPTS = 6;
 const WORKER_LOCK_MS = 60_000;
 
 /** Written inside the same transaction as the order insert (transactional outbox pattern). */
-export async function enqueueWhatsAppNotification(
+export async function enqueueNotification(
+  channel: NotificationChannel,
   orderId: ObjectId,
   orderNumber: string,
   payloadSummary: string,
@@ -15,7 +16,7 @@ export async function enqueueWhatsAppNotification(
   const col = await notificationOutbox();
   const now = new Date();
   const doc: Omit<NotificationOutboxEntry, '_id'> = {
-    channel: 'whatsapp',
+    channel,
     orderId,
     orderNumber,
     status: 'pending',
@@ -38,7 +39,11 @@ export async function enqueueWhatsAppNotification(
  * duplicate send is possible under ambiguous network failure (see README
  * "Known limitation: at-least-once delivery").
  */
-export async function claimDueNotifications(workerId: string, limit = 10): Promise<NotificationOutboxEntry[]> {
+export async function claimDueNotifications(
+  channel: NotificationChannel,
+  workerId: string,
+  limit = 10,
+): Promise<NotificationOutboxEntry[]> {
   const col = await notificationOutbox();
   const now = new Date();
   const lockExpiry = new Date(now.getTime() - WORKER_LOCK_MS);
@@ -47,6 +52,7 @@ export async function claimDueNotifications(workerId: string, limit = 10): Promi
   for (let i = 0; i < limit; i++) {
     const result = await col.findOneAndUpdate(
       {
+        channel,
         status: { $in: ['pending', 'failed'] },
         nextAttemptAt: { $lte: now },
         attempts: { $lt: MAX_ATTEMPTS },

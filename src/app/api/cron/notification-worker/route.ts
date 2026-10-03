@@ -1,14 +1,18 @@
 import { NextResponse } from 'next/server';
 import { getCronSecret } from '@/lib/env';
 import { runWhatsAppWorker } from '@/lib/notifications/whatsapp/worker';
+import { runEmailWorker } from '@/lib/notifications/email/worker';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
  * Triggered by Vercel Cron (vercel.json) as a backstop sweep, and/or by
- * Upstash QStash for near-real-time delivery — see README "WhatsApp setup"
- * for why Vercel Hobby's daily-only cron isn't fast enough on its own.
+ * Upstash QStash for near-real-time delivery — see README "Notifications
+ * setup" for why Vercel Hobby's daily-only cron isn't fast enough on its
+ * own. Drains both the WhatsApp and email outbox channels in one tick;
+ * whichever channel isn't configured just reports skippedUnconfigured
+ * and leaves its entries pending rather than failing.
  *
  * Protected by a shared secret rather than session auth, since the caller
  * is a scheduler, not a logged-in user. When a `CRON_SECRET` env var is
@@ -26,8 +30,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const summary = await runWhatsAppWorker();
-  return NextResponse.json(summary);
+  const [whatsapp, email] = await Promise.all([runWhatsAppWorker(), runEmailWorker()]);
+  return NextResponse.json({ whatsapp, email });
 }
 
 export async function GET(request: Request) {

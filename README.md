@@ -180,14 +180,47 @@ Not started yet, in roughly the order I'd build them:
 - **MongoDB Atlas** — `MONGODB_URI` in `.env.example`.
 - **Cloudinary** (product media) — `CLOUDINARY_*` vars. Until set, admin
   media upload is disabled but nothing else breaks.
-- **Meta WhatsApp Cloud API** — see below. Until configured, orders still
-  save normally; notifications sit as "pending".
-- **Upstash QStash (recommended)** — triggers the notification worker in
-  near-real-time. Vercel's own Cron Jobs are daily-only on the Hobby plan,
-  which is too slow for order alerts; `vercel.json`'s cron is a 5-minute
-  backstop sweep that needs a Pro plan to actually run that often.
+- **Resend** (email order notifications — the recommended/default
+  channel) — see below. No card required for the free tier.
+- **Meta WhatsApp Cloud API** (optional second notification channel) —
+  see below, and read the warning first.
+- **Upstash QStash (recommended if using WhatsApp)** — triggers the
+  notification worker in near-real-time. Vercel's own Cron Jobs are
+  daily-only on the Hobby plan, which is too slow for order alerts;
+  `vercel.json`'s cron is a 5-minute backstop sweep that needs a Pro plan
+  to actually run that often. Not needed for email-only notifications if
+  a few minutes' delay is acceptable.
 
-### WhatsApp setup
+### Email setup (Resend) — recommended, start here
+
+Orders enqueue a notification on **both** channels unconditionally
+(`checkout.service.ts`); whichever isn't configured just sits "pending"
+harmlessly, so you can run email-only, WhatsApp-only, both, or neither
+without touching code.
+
+1. Sign up at [resend.com](https://resend.com) — email/GitHub login,
+   **no payment method required** for the free tier (3,000 emails/month).
+2. Dashboard → API Keys → create one, copy it into `RESEND_API_KEY`.
+3. Set `ADMIN_NOTIFICATION_EMAIL` to the same email address you signed up
+   to Resend with. This isn't arbitrary: Resend's free tier, without a
+   verified sending domain, only allows sending **to the account owner's
+   own address** from their shared `onboarding@resend.dev` sender — which
+   is exactly this use case. Verifying your own domain later (still free)
+   lifts that restriction for a branded From address, but isn't required.
+4. That's it — no webhook, no template approval, no review process.
+
+### WhatsApp setup (optional)
+
+**Read this before adding a card anywhere in Meta Business Manager.**
+Meta's WhatsApp Business Platform requires a payment method on the
+Business Portfolio before it will send *any* message (even within the
+free monthly tier) — and adding one can trigger a real authorization
+charge attempt on your card, not a token $0–1 hold. This happened during
+development of this project: adding a card produced an attempted charge
+of several thousand PKR. It failed only because the card lacked funds at
+that moment — it was not a deliberate small "verification" amount. If you
+go down this path, use a card/virtual card you're comfortable with being
+charged a non-trivial amount, or skip WhatsApp and run email-only.
 
 1. Create a Meta Business app with the WhatsApp product, get a phone
    number ID and a permanent access token.
@@ -200,26 +233,28 @@ Not started yet, in roughly the order I'd build them:
      shorter body (order number, time, name, phone, city/province, item
      count, total, link). Used automatically for orders with many line
      items; see `lib/notifications/whatsapp/templates.ts`.
-3. Set `WHATSAPP_CLOUD_API_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`,
-   `WHATSAPP_BUSINESS_ACCOUNT_ID`, `WHATSAPP_ADMIN_NOTIFICATION_NUMBER`
-   (your own number, E.164).
+3. Add a payment method under Business Settings → Payment Settings (see
+   warning above), then set `WHATSAPP_CLOUD_API_TOKEN`,
+   `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_BUSINESS_ACCOUNT_ID`,
+   `WHATSAPP_ADMIN_NOTIFICATION_NUMBER` (your own number, E.164).
 4. Subscribe your app's webhook to `messages` at
    `https://<your-domain>/api/whatsapp/webhook`, with
    `WHATSAPP_WEBHOOK_VERIFY_TOKEN` matching your `.env` value, and set
    `WHATSAPP_APP_SECRET` from the app dashboard (used to verify
    `X-Hub-Signature-256`).
-5. Point a scheduler at `POST /api/cron/whatsapp-worker` with an
+5. Point a scheduler at `POST /api/cron/notification-worker` with an
    `Authorization: Bearer <CRON_SECRET>` header — Vercel adds this
    automatically for its own Cron Jobs once `CRON_SECRET` is set; for
-   QStash, configure the same header manually.
+   QStash, configure the same header manually. This single endpoint
+   drains both the WhatsApp and email outbox channels.
 
-**Known limitation**: delivery is at-least-once, not exactly-once. If our
-send succeeds but the HTTP response is lost before we record it, the
-worker's lock expires and a retry can re-send the same order notification.
-This is inherent to any webhook/HTTP integration without a two-phase
-commit with Meta; it's a duplicate alert, not a duplicate order (the order
-itself is protected by the checkout idempotency key, which this doesn't
-touch).
+**Known limitation**: delivery is at-least-once, not exactly-once, for
+both channels. If a send succeeds but the response is lost before we
+record it, the worker's lock expires and a retry can re-send the same
+order notification. This is inherent to any provider integration without
+a two-phase commit; it's a duplicate alert, not a duplicate order (the
+order itself is protected by the checkout idempotency key, which this
+doesn't touch).
 
 ### Search setup
 

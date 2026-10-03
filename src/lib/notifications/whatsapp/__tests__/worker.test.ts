@@ -20,7 +20,7 @@ describe('WhatsApp outbox + worker', () => {
     );
 
     const col = await notificationOutbox();
-    const entry = await col.findOne({ orderId: order._id });
+    const entry = await col.findOne({ orderId: order._id, channel: 'whatsapp' });
     expect(entry).toBeTruthy();
     expect(entry?.status).toBe('pending');
     expect(entry?.channel).toBe('whatsapp');
@@ -42,7 +42,7 @@ describe('WhatsApp outbox + worker', () => {
     expect(summary.skippedUnconfigured).toBeGreaterThanOrEqual(1);
 
     const col = await notificationOutbox();
-    const entry = await col.findOne({ orderId: order._id });
+    const entry = await col.findOne({ orderId: order._id, channel: 'whatsapp' });
     expect(entry?.status).toBe('pending');
     expect(entry?.attempts).toBe(0);
   });

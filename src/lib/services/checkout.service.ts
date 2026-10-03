@@ -7,7 +7,7 @@ import { claimStock, incrementSalesCounts } from '@/lib/services/inventory.servi
 import { getCouponByCode, incrementCouponUsage } from '@/lib/repositories/coupons.repo';
 import { getStoreSettings, resolveShipping } from '@/lib/repositories/settings.repo';
 import { insertOrder, findOrderByIdempotencyKey } from '@/lib/repositories/orders.repo';
-import { enqueueWhatsAppNotification } from '@/lib/repositories/notifications.repo';
+import { enqueueNotification } from '@/lib/repositories/notifications.repo';
 import { generateOrderNumber, generateTrackingToken } from '@/lib/utils/ids';
 import { percentOf } from '@/lib/utils/money';
 import { buildOrderNotificationSummary } from '@/lib/notifications/whatsapp/templates';
@@ -135,12 +135,13 @@ export async function placeOrder(
         session,
       );
 
-      await enqueueWhatsAppNotification(
-        createdOrder._id,
-        orderNumber,
-        buildOrderNotificationSummary(createdOrder),
-        session,
-      );
+      const summary = buildOrderNotificationSummary(createdOrder);
+      // Both channels are enqueued unconditionally — whichever isn't
+      // configured just sits "pending" harmlessly (see each worker's
+      // "unconfigured" handling), so enabling/disabling a channel later
+      // never needs a code change here.
+      await enqueueNotification('email', createdOrder._id, orderNumber, summary, session);
+      await enqueueNotification('whatsapp', createdOrder._id, orderNumber, summary, session);
     });
 
     if (!createdOrder) {

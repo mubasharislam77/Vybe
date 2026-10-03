@@ -62,6 +62,19 @@ export function getWhatsAppConfig() {
   return parsed.success ? parsed.data : null;
 }
 
+const emailSchema = z.object({
+  RESEND_API_KEY: z.string().min(1),
+  ADMIN_NOTIFICATION_EMAIL: z.email(),
+});
+
+export function getEmailConfig() {
+  const parsed = emailSchema.safeParse({
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    ADMIN_NOTIFICATION_EMAIL: process.env.ADMIN_NOTIFICATION_EMAIL,
+  });
+  return parsed.success ? parsed.data : null;
+}
+
 export function getCronSecret(): string | null {
   const v = process.env.CRON_SECRET;
   return v && v.length >= 16 ? v : null;

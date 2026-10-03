@@ -27,7 +27,7 @@ export interface WorkerRunSummary {
  */
 export async function runWhatsAppWorker(limit = 10): Promise<WorkerRunSummary> {
   const workerId = randomUUID();
-  const entries = await claimDueNotifications(workerId, limit);
+  const entries = await claimDueNotifications('whatsapp', workerId, limit);
   const summary: WorkerRunSummary = { claimed: entries.length, sent: 0, failed: 0, skippedUnconfigured: 0 };
 
   for (const entry of entries) {
