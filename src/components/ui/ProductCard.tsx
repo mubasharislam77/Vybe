@@ -31,7 +31,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
   const wishlisted = has(product.slug);
 
   return (
-    <div className="group relative border border-ink/12 bg-ivory transition-all duration-300 ease-out hover:-translate-y-1 hover:border-ink hover:shadow-[0_16px_28px_-16px_rgba(23,23,23,0.35)] motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+    <div className="group relative border border-lime/60 bg-ivory transition-all duration-300 ease-out hover:-translate-y-1 hover:border-lime hover:shadow-[0_16px_28px_-16px_rgba(23,23,23,0.35)] motion-reduce:transition-none motion-reduce:hover:translate-y-0">
       <Link href={`/products/${product.slug}`} className="block">
         <div className="relative aspect-[3/4] overflow-hidden bg-ink/5">
           <Image
@@ -46,10 +46,6 @@ export function ProductCard({ product }: { product: ProductCardData }) {
               <Badge tone={badge.tone}>{badge.label}</Badge>
             </div>
           )}
-          <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-lime opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-            aria-hidden="true"
-          />
         </div>
         <div className="space-y-1 p-3">
           <h3 className="text-sm text-ink transition-colors group-hover:text-burgundy">{product.title}</h3>
