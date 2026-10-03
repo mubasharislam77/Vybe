@@ -1,14 +1,16 @@
 'use client';
 
-import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
+import { motion, useTransform, useReducedMotion } from 'framer-motion';
 import type { ReactNode } from 'react';
+import { useAmbientScrollY } from './AmbientScrollProvider';
 
 /**
  * Decorative, scroll-linked background motion — tracks whole-page scroll
- * (not per-section), so each shape keeps drifting/spinning continuously as
- * the user moves through the page rather than resetting per section.
- * Purely decorative: aria-hidden, pointer-events-none, and inert entirely
- * under prefers-reduced-motion (the transform is dropped, not just slowed).
+ * via the single shared listener in AmbientScrollProvider (not its own),
+ * so each shape keeps drifting/spinning continuously as the user moves
+ * through the page rather than resetting per section. Purely decorative:
+ * aria-hidden, pointer-events-none, and inert entirely under
+ * prefers-reduced-motion (the transform is dropped, not just slowed).
  */
 
 export function ScrollSpin({
@@ -20,7 +22,7 @@ export function ScrollSpin({
   factor?: number;
   children: ReactNode;
 }) {
-  const { scrollY } = useScroll();
+  const scrollY = useAmbientScrollY();
   const reduceMotion = useReducedMotion();
   const rotate = useTransform(scrollY, (v) => v * factor);
 
@@ -46,7 +48,7 @@ export function ScrollDrift({
   axis?: 'x' | 'y';
   children: ReactNode;
 }) {
-  const { scrollY } = useScroll();
+  const scrollY = useAmbientScrollY();
   const reduceMotion = useReducedMotion();
   const offset = useTransform(scrollY, (v) => v * factor);
 

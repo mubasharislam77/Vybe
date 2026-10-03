@@ -1,4 +1,4 @@
-import SmoothScroll from '@/components/SmoothScroll';
+import { AmbientScrollProvider } from '@/components/ui/AmbientScrollProvider';
 import SiteHeader from '@/components/layout/SiteHeader';
 import SiteFooter from '@/components/layout/SiteFooter';
 import Hero from '@/components/Hero';
@@ -33,7 +33,7 @@ export default async function Home() {
   }));
 
   return (
-    <SmoothScroll>
+    <AmbientScrollProvider>
       <SiteHeader />
       <main>
         <Hero />
@@ -54,6 +54,6 @@ export default async function Home() {
         <ShoppingInfo settings={settings} />
       </main>
       <SiteFooter />
-    </SmoothScroll>
+    </AmbientScrollProvider>
   );
 }
