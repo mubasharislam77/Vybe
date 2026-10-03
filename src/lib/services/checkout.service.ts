@@ -3,8 +3,8 @@ import { getMongoClient } from '@/lib/db/client';
 import type { CheckoutInput } from '@/lib/validation/checkout';
 import type { Order, OrderLineItem } from '@/types/domain';
 import { getProductByVariantSku } from '@/lib/repositories/products.repo';
-import { claimStock, releaseStock, incrementSalesCounts } from '@/lib/services/inventory.service';
-import { getCouponByCode, incrementCouponUsage, decrementCouponUsage } from '@/lib/repositories/coupons.repo';
+import { claimStock, incrementSalesCounts } from '@/lib/services/inventory.service';
+import { getCouponByCode, incrementCouponUsage } from '@/lib/repositories/coupons.repo';
 import { getStoreSettings, resolveShipping } from '@/lib/repositories/settings.repo';
 import { insertOrder, findOrderByIdempotencyKey } from '@/lib/repositories/orders.repo';
 import { enqueueWhatsAppNotification } from '@/lib/repositories/notifications.repo';
@@ -170,13 +170,3 @@ function isDuplicateKeyError(err: unknown): boolean {
   return Boolean(err && typeof err === 'object' && 'code' in err && (err as { code: number }).code === 11000);
 }
 
-export async function compensateCancelledOrder(order: Order): Promise<void> {
-  for (const item of order.items) {
-    if (item.fulfillment === 'ready_stock') {
-      await releaseStock(item.sku, item.quantity);
-    }
-  }
-  if (order.coupon) {
-    await decrementCouponUsage(order.coupon.code);
-  }
-}
