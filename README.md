@@ -204,13 +204,19 @@ without touching code.
 1. Sign up at [resend.com](https://resend.com) — email/GitHub login,
    **no payment method required** for the free tier (3,000 emails/month).
 2. Dashboard → API Keys → create one, copy it into `RESEND_API_KEY`.
-3. Set `ADMIN_NOTIFICATION_EMAIL` to the same email address you signed up
-   to Resend with. This isn't arbitrary: Resend's free tier, without a
-   verified sending domain, only allows sending **to the account owner's
-   own address** from their shared `onboarding@resend.dev` sender — which
-   is exactly this use case. Verifying your own domain later (still free)
-   lifts that restriction for a branded From address, but isn't required.
-4. That's it — no webhook, no template approval, no review process.
+3. Dashboard → Domains → Add Domain → enter your store's domain. Add the
+   DNS records it gives you (DKIM + SPF, both TXT/MX) wherever your
+   domain's DNS is managed — if you're using Vercel's nameservers (see
+   "Custom domain setup" below), that's Vercel's own DNS records page for
+   the domain. Verification is usually quick once the records propagate.
+   Until verified, Resend's free tier only allows sending to the Resend
+   account's own email — once verified, you can send to any recipient
+   from a real address on your domain (`orders@<yourdomain>`, already
+   wired up in `lib/notifications/email/client.ts`).
+4. Set `ADMIN_NOTIFICATION_EMAIL` to whichever inbox should actually
+   receive the order alerts — no longer tied to the Resend signup email
+   once your domain is verified.
+5. No webhook, no template approval, no review process — unlike WhatsApp.
 
 ### WhatsApp setup (optional)
 
