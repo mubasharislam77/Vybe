@@ -13,7 +13,8 @@
     "db:indexes": "tsx scripts/create-indexes.ts",
     "db:seed": "tsx scripts/seed.ts",
     "db:seed:bench": "tsx scripts/seed.ts --count=10000",
-    "provision:admin": "tsx scripts/provision-admin.ts"
+    "provision:admin": "tsx scripts/provision-admin.ts",
+    "staff:add": "tsx scripts/add-staff.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

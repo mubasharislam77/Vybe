@@ -184,7 +184,14 @@ Not started yet, in roughly the order I'd build them:
 
 Sign in at `/admin/login` with a staff account (create the first one with
 `npm run provision:admin`; add the rest from **Staff accounts** inside the
-portal). Customer accounts cannot sign in here — the staff Credentials
+portal). Staff accounts live in the database, so an account created
+locally does not exist on production. To create or reset one directly on
+any environment (e.g. the first admin on Atlas), run:
+
+```bash
+MONGODB_URI='mongodb+srv://…' MONGODB_DB_NAME=vybe \
+  npm run staff:add -- --email=you@vybe.pk --name="Your Name" --password=… --role=admin
+``` Customer accounts cannot sign in here — the staff Credentials
 provider only reads `staff_users`.
 
 | Area | What you can do |
