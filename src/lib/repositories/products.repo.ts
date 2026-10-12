@@ -3,6 +3,7 @@ import { products, categories, productCollections } from '@/lib/db/collections';
 import type { Product } from '@/types/domain';
 import type { ListingQuery } from '@/lib/validation/product';
 import { clampPageSize, decodeCursor, encodeCursor, keysetFilter } from '@/lib/utils/pagination';
+import { toSetUnset } from '@/lib/db/update';
 
 /**
  * Variant-price semantics (applies consistently to display, filtering, and
@@ -280,18 +281,28 @@ export async function insertProduct(doc: Omit<Product, '_id'>): Promise<Product>
 
 export async function updateProduct(id: string, update: Partial<Omit<Product, '_id'>>): Promise<void> {
   const col = await products();
-  await col.updateOne({ _id: new ObjectId(id) }, { $set: { ...update, updatedAt: new Date() } });
+  await col.updateOne({ _id: new ObjectId(id) }, toSetUnset<Product>({ ...update, updatedAt: new Date() }));
 }
 
 export async function listProductsForAdmin(params: {
   cursor?: string;
   pageSize?: number;
   status?: Product['status'];
+  q?: string;
+  lowStock?: boolean;
 }): Promise<{ items: Product[]; nextCursor: string | null }> {
   const col = await products();
   const pageSize = clampPageSize(params.pageSize);
   const filter: Filter<Product> = {};
   if (params.status) filter.status = params.status;
+  if (params.q) {
+    const rx = { $regex: escapeRegexForAdmin(params.q), $options: 'i' };
+    filter.$or = [{ title: rx }, { slug: rx }, { 'variants.sku': rx }, { tags: rx }];
+  }
+  if (params.lowStock) {
+    filter.fulfillment = 'ready_stock';
+    filter.variants = { $elemMatch: { stock: { $lte: LOW_STOCK_THRESHOLD } } };
+  }
 
   const cursor = decodeCursor(params.cursor);
   const combinedFilter: Filter<Product> = cursor
@@ -311,4 +322,90 @@ export async function listProductsForAdmin(params: {
     hasMore && last ? encodeCursor({ value: last.createdAt.toISOString(), id: last._id.toString() }) : null;
 
   return { items: page, nextCursor };
+}
+
+function escapeRegexForAdmin(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export const LOW_STOCK_THRESHOLD = 3;
+
+export async function deleteProduct(id: string): Promise<boolean> {
+  const col = await products();
+  const result = await col.deleteOne({ _id: new ObjectId(id) });
+  return result.deletedCount === 1;
+}
+
+export async function countProducts(filter: Filter<Product> = {}): Promise<number> {
+  const col = await products();
+  return col.countDocuments(filter);
+}
+
+export async function countProductsReferencing(field: 'categoryIds' | 'collectionIds', id: string): Promise<number> {
+  const col = await products();
+  return col.countDocuments({ [field]: new ObjectId(id) });
+}
+
+export interface LowStockVariant {
+  productId: ObjectId;
+  slug: string;
+  title: string;
+  sku: string;
+  size: string;
+  colorName: string;
+  stock: number;
+}
+
+/** Published ready-stock variants at or below the low-stock threshold, most urgent first. */
+export async function listLowStockVariants(limit = 10): Promise<LowStockVariant[]> {
+  const col = await products();
+  const docs = await col
+    .aggregate<LowStockVariant>([
+      { $match: { status: 'published', fulfillment: 'ready_stock' } },
+      { $unwind: '$variants' },
+      { $match: { 'variants.stock': { $lte: LOW_STOCK_THRESHOLD } } },
+      { $sort: { 'variants.stock': 1, salesCount: -1 } },
+      { $limit: limit },
+      {
+        $project: {
+          _id: 0,
+          productId: '$_id',
+          slug: 1,
+          title: 1,
+          sku: '$variants.sku',
+          size: '$variants.size',
+          colorName: '$variants.colorName',
+          stock: '$variants.stock',
+        },
+      },
+    ])
+    .toArray();
+  return docs;
+}
+
+export async function countLowStockVariants(): Promise<number> {
+  const col = await products();
+  const [row] = await col
+    .aggregate<{ count: number }>([
+      { $match: { status: 'published', fulfillment: 'ready_stock' } },
+      { $unwind: '$variants' },
+      { $match: { 'variants.stock': { $lte: LOW_STOCK_THRESHOLD } } },
+      { $count: 'count' },
+    ])
+    .toArray();
+  return row?.count ?? 0;
+}
+
+export async function getProductsByIds(ids: ObjectId[]): Promise<Map<string, Product>> {
+  if (ids.length === 0) return new Map();
+  const col = await products();
+  const docs = await col.find({ _id: { $in: ids } }).toArray();
+  return new Map(docs.map((d) => [d._id.toString(), d]));
+}
+
+/** Catalog-wide stock totals for the dashboard. */
+export async function getCatalogStats(): Promise<{ total: number; published: number; draft: number }> {
+  const col = await products();
+  const [total, published] = await Promise.all([col.countDocuments({}), col.countDocuments({ status: 'published' })]);
+  return { total, published, draft: total - published };
 }

@@ -23,10 +23,23 @@ export async function recordAuditLog(entry: {
   await col.insertOne(doc as AuditLogEntry);
 }
 
-export async function listAuditLogs(params: { targetType?: string; targetId?: string; limit?: number }) {
+export async function listAuditLogs(params: {
+  targetType?: string;
+  targetId?: string;
+  actorId?: string;
+  before?: Date;
+  limit?: number;
+}): Promise<AuditLogEntry[]> {
   const col = await auditLogs();
   const filter: Record<string, unknown> = {};
   if (params.targetType) filter.targetType = params.targetType;
   if (params.targetId) filter.targetId = params.targetId;
+  if (params.actorId && ObjectId.isValid(params.actorId)) filter.actorId = new ObjectId(params.actorId);
+  if (params.before) filter.at = { $lt: params.before };
   return col.find(filter).sort({ at: -1 }).limit(params.limit ?? 100).toArray();
+}
+
+export async function listDistinctAuditTargetTypes(): Promise<string[]> {
+  const col = await auditLogs();
+  return (await col.distinct('targetType')) as string[];
 }

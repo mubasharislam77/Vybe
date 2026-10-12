@@ -52,3 +52,16 @@ export async function moderateReview(id: string, status: 'approved' | 'rejected'
   const col = await reviews();
   await col.updateOne({ _id: new ObjectId(id) }, { $set: { status } });
 }
+
+export async function countReviewsByStatus(): Promise<Record<Review['status'], number>> {
+  const col = await reviews();
+  const rows = await col.aggregate<{ _id: Review['status']; count: number }>([{ $group: { _id: '$status', count: { $sum: 1 } } }]).toArray();
+  const out: Record<Review['status'], number> = { pending: 0, approved: 0, rejected: 0 };
+  for (const r of rows) out[r._id] = r.count;
+  return out;
+}
+
+export async function deleteReview(id: string): Promise<void> {
+  const col = await reviews();
+  await col.deleteOne({ _id: new ObjectId(id) });
+}

@@ -2,6 +2,7 @@ import { ObjectId, type ClientSession } from 'mongodb';
 import { coupons } from '@/lib/db/collections';
 import type { Coupon } from '@/types/domain';
 import type { CouponInput } from '@/lib/validation/coupon';
+import { toSetUnset } from '@/lib/db/update';
 
 export async function getCouponByCode(code: string, session?: ClientSession): Promise<Coupon | null> {
   const col = await coupons();
@@ -38,20 +39,18 @@ export async function updateCoupon(id: string, input: CouponInput): Promise<void
   const col = await coupons();
   await col.updateOne(
     { _id: new ObjectId(id) },
-    {
-      $set: {
-        code: input.code,
-        type: input.type,
-        value: input.value,
-        minSpendMinor: input.minSpendMinor,
-        usageLimit: input.usageLimit,
-        perCustomerLimit: input.perCustomerLimit,
-        startsAt: input.startsAt,
-        expiresAt: input.expiresAt,
-        active: input.active,
-        updatedAt: new Date(),
-      },
-    },
+    toSetUnset<Coupon>({
+      code: input.code,
+      type: input.type,
+      value: input.value,
+      minSpendMinor: input.minSpendMinor,
+      usageLimit: input.usageLimit,
+      perCustomerLimit: input.perCustomerLimit,
+      startsAt: input.startsAt,
+      expiresAt: input.expiresAt,
+      active: input.active,
+      updatedAt: new Date(),
+    }),
   );
 }
 
@@ -87,4 +86,20 @@ export async function incrementCouponUsage(
 export async function decrementCouponUsage(code: string, session?: ClientSession): Promise<void> {
   const col = await coupons();
   await col.updateOne({ code: code.toUpperCase() }, { $inc: { usageCount: -1 } }, { session });
+}
+
+export async function getCouponById(id: string): Promise<Coupon | null> {
+  if (!ObjectId.isValid(id)) return null;
+  const col = await coupons();
+  return col.findOne({ _id: new ObjectId(id) });
+}
+
+export async function setCouponActive(id: string, active: boolean): Promise<void> {
+  const col = await coupons();
+  await col.updateOne({ _id: new ObjectId(id) }, { $set: { active, updatedAt: new Date() } });
+}
+
+export async function deleteCoupon(id: string): Promise<void> {
+  const col = await coupons();
+  await col.deleteOne({ _id: new ObjectId(id) });
 }

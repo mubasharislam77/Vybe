@@ -172,6 +172,8 @@ export interface Order {
   bankTransferProof?: { url: string; publicId: string; submittedAt: Date };
   fulfillmentStatus: FulfillmentStatus;
   statusHistory: { status: FulfillmentStatus; at: Date; by: string }[];
+  /** Internal notes written by staff from the admin order page — never shown to the customer. */
+  staffNotes?: { note: string; by: string; at: Date }[];
   placedAt: Date;
   createdAt: Date;
   updatedAt: Date;

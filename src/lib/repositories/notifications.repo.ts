@@ -127,3 +127,40 @@ export async function listNotificationsForAdmin(filters: {
   const filter = filters.status ? { status: filters.status } : {};
   return col.find(filter).sort({ createdAt: -1 }).limit(filters.limit ?? 100).toArray();
 }
+
+export async function listNotificationsForOrder(orderId: ObjectId): Promise<NotificationOutboxEntry[]> {
+  const col = await notificationOutbox();
+  return col.find({ orderId }).sort({ channel: 1 }).toArray();
+}
+
+export async function findNotificationById(id: string): Promise<NotificationOutboxEntry | null> {
+  if (!ObjectId.isValid(id)) return null;
+  const col = await notificationOutbox();
+  return col.findOne({ _id: new ObjectId(id) });
+}
+
+export async function countNotificationsByStatus(): Promise<Record<NotificationStatus, number>> {
+  const col = await notificationOutbox();
+  const rows = await col
+    .aggregate<{ _id: NotificationStatus; count: number }>([{ $group: { _id: '$status', count: { $sum: 1 } } }])
+    .toArray();
+  const out: Record<NotificationStatus, number> = { pending: 0, provider_accepted: 0, delivered: 0, failed: 0 };
+  for (const r of rows) out[r._id] = r.count;
+  return out;
+}
+
+/**
+ * Admin "retry": resets attempts too, so a permanently-failed entry (which
+ * `claimDueNotifications` otherwise ignores forever via `attempts < max`)
+ * gets a fresh set of attempts rather than silently never being picked up.
+ */
+export async function resetForManualRetry(id: ObjectId): Promise<void> {
+  const col = await notificationOutbox();
+  await col.updateOne(
+    { _id: id },
+    {
+      $set: { status: 'pending', attempts: 0, nextAttemptAt: new Date(), updatedAt: new Date() },
+      $unset: { lockedAt: '', lockedBy: '', lastError: '' },
+    },
+  );
+}

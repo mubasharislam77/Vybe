@@ -2,6 +2,7 @@ import { ObjectId } from 'mongodb';
 import { categories } from '@/lib/db/collections';
 import type { Category } from '@/types/domain';
 import type { CategoryInput } from '@/lib/validation/category';
+import { toSetUnset } from '@/lib/db/update';
 
 export async function listCategoryTree(): Promise<Category[]> {
   const col = await categories();
@@ -40,17 +41,15 @@ export async function updateCategory(id: string, input: CategoryInput): Promise<
   const col = await categories();
   await col.updateOne(
     { _id: new ObjectId(id) },
-    {
-      $set: {
-        slug: input.slug,
-        name: input.name,
-        parentId: input.parentId ? new ObjectId(input.parentId) : null,
-        order: input.order,
-        description: input.description,
-        imageUrl: input.imageUrl,
-        updatedAt: new Date(),
-      },
-    },
+    toSetUnset<Category>({
+      slug: input.slug,
+      name: input.name,
+      parentId: input.parentId ? new ObjectId(input.parentId) : null,
+      order: input.order,
+      description: input.description,
+      imageUrl: input.imageUrl,
+      updatedAt: new Date(),
+    }),
   );
 }
 

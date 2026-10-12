@@ -27,6 +27,11 @@ const ALLOWED_FROM: Record<FulfillmentStatus, FulfillmentStatus[]> = {
   returned: [],
 };
 
+/** What an order in `from` can move to next — drives the admin action buttons. */
+export function nextFulfillmentStatuses(from: FulfillmentStatus): FulfillmentStatus[] {
+  return ALLOWED_FROM[from];
+}
+
 function allowedFromStatuses(to: FulfillmentStatus): FulfillmentStatus[] {
   return (Object.keys(ALLOWED_FROM) as FulfillmentStatus[]).filter((from) => ALLOWED_FROM[from].includes(to));
 }

@@ -15,6 +15,11 @@ const MAX_POOL_SIZE = Number(process.env.MONGODB_MAX_POOL_SIZE ?? 10);
 
 function createClient(): Promise<MongoClient> {
   const client = new MongoClient(env.MONGODB_URI, {
+    // Never serialize `undefined` as BSON null: an optional field left unset
+    // on insert must be absent (so `'field' in doc` / zod `.optional()` and
+    // `!== undefined` checks behave), and update paths that need to clear a
+    // field use an explicit $unset (see lib/db/update.ts).
+    ignoreUndefined: true,
     maxPoolSize: MAX_POOL_SIZE,
     minPoolSize: Number(process.env.MONGODB_MIN_POOL_SIZE ?? 0),
     maxIdleTimeMS: 30_000,

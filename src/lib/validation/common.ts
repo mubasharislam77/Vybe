@@ -25,6 +25,20 @@ export const addressSchema = z.object({
   landmark: z.string().trim().max(200).optional(),
 });
 
+/**
+ * Image/banner locations: a full http(s) URL (Cloudinary, external) OR a
+ * root-relative path under /public (the seed catalog and any hand-placed
+ * assets use `/products/...`). Rejects protocol-relative `//` and anything
+ * without a leading slash.
+ */
+export const imageLocationSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .refine((v) => /^https?:\/\/\S+$/.test(v) || (/^\/[^/\s]/.test(v) && !/\s/.test(v)), {
+    message: 'Must be a full URL (https://…) or a root-relative path (/images/…)',
+  });
+
 export const paginationQuerySchema = z.object({
   cursor: z.string().optional(),
   pageSize: z.coerce.number().int().positive().max(48).optional(),

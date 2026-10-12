@@ -4,10 +4,11 @@ Pakistani streetwear ecommerce app — Next.js (App Router) + MongoDB, single
 app (no separate API service: Server Components and Server Actions call
 services directly).
 
-**Status: foundation + commerce engine + catalog browsing are built and
-tested against a real database. Product detail page, cart/checkout UI,
-account pages, and the admin panel are not yet built.** See "What's left"
-below before treating this as deployable.
+**Status: foundation, commerce engine, catalog browsing, product/cart/
+checkout/tracking pages, and the admin portal (`/admin`) are built and
+tested against a real database. Customer account pages and static
+content pages are not yet built.** See "What's left" below before
+treating this as deployable.
 
 ## Quick start (local dev)
 
@@ -68,11 +69,20 @@ src/
                              token for the "large order" document template.
     actions/                  'use server' actions called from client
                              components (checkout, cart sync, registration).
+    actions/admin/            Admin-only server actions. Every one goes
+                             through `runAdminAction` (session + role
+                             check, friendly error mapping) and writes an
+                             audit_logs row via `audit()`.
   components/
     ui/                       Design-system primitives (Button, FormField,
                              ProductCard, Badge, PriceTag, ...).
     shop/                     Listing page + filters/sort/pagination,
                              shared by every catalog route.
+    admin/                    Admin portal shell (sidebar nav, page header,
+                             stat cards, status badges, ActionButton) and
+                             forms (product, category, collection, coupon,
+                             staff, settings, image uploader).
+  app/admin/                  Admin portal routes — see "Admin portal".
 scripts/                     create-indexes.ts, seed.ts, provision-admin.ts
                              — all safe/idempotent, documented in each file.
 ```
@@ -161,12 +171,7 @@ Not started yet, in roughly the order I'd build them:
    and photography are kept; they need re-pointing at real products plus
    the featured-categories/lookbook/shopping-info sections the spec asks
    for.
-5. **Admin panel** (`/admin/**`) — entirely unbuilt: product/category/
-   collection/coupon CRUD forms, order management + status updates,
-   dashboard, media upload (Cloudinary signing helper already exists at
-   `lib/media/cloudinary.ts`), notification health/retry, staff roles,
-   audit log display (the repo already records entries — nothing calls
-   it yet from admin actions).
+5. ~~**Admin panel**~~ — built; see "Admin portal" below.
 6. **Static pages**: about, contact, size guide, shipping, returns,
    privacy, terms, wishlist page, branded 404/error/empty states.
 7. **SEO**: structured data, sitemap/robots, canonical URLs,
@@ -174,6 +179,47 @@ Not started yet, in roughly the order I'd build them:
 8. **Reviews submission UI** (schema + repo exist, no form yet).
 9. **10,000-product benchmark run** (`npm run db:seed:bench`) with actual
    p50/p95 measurements — not yet executed.
+
+## Admin portal
+
+Sign in at `/admin/login` with a staff account (create the first one with
+`npm run provision:admin`; add the rest from **Staff accounts** inside the
+portal). Customer accounts cannot sign in here — the staff Credentials
+provider only reads `staff_users`.
+
+| Area | What you can do |
+| --- | --- |
+| Dashboard | Needs-action counts (pending orders, payments to verify, reviews to moderate, failed alerts), sales for the last 24h / 7d / 30d, recent orders, low-stock variants, integration health (Resend, WhatsApp, Cloudinary, cron secret). |
+| Orders | Filter by fulfillment/payment status, search by order number or phone. Per order: items, address, customer link, bank-transfer proof, status timeline, internal staff notes, one-click fulfillment transitions (same state machine as `order.service`), payment bookkeeping (`payment.service`), resend the order alert, and that order's audit trail. |
+| Products | Search/filter (incl. low stock), publish/unpublish, feature, full create/edit form with variants, categories, collections, tags, SEO, and image upload (direct-to-Cloudinary when configured, URL paste otherwise). |
+| Categories / Collections / Coupons | Inline create/edit/delete with referential guards (can't delete a category with products or sub-categories; a used coupon can only be deactivated). |
+| Reviews | Pending/approved/rejected queues; approve, reject, delete. |
+| Customers | Search registered accounts; per-customer orders, spend, addresses. |
+| Notifications | Outbox by status, retry a single entry (resets its attempt budget), run the worker on demand. |
+| Store settings | Contact details, social links, default shipping fee, free-shipping threshold, per-city shipping zones and COD eligibility, bank-transfer instructions. Changes apply to the next checkout. |
+| Staff accounts | Invite, change role, deactivate, reset password. Guards: you can't demote/deactivate yourself or the last active admin. |
+| Audit log | Append-only record of every portal action, filterable by record type and staff member. |
+| My account | Change your own password. |
+
+**Roles.** `admin` can do everything. `staff` can run day-to-day
+operations (orders, catalog edits, reviews, notifications, customers) but
+cannot open Store settings, Staff accounts, or the Audit log, and cannot
+delete products, categories, collections, coupons, or reviews. Role
+checks happen in three places: the Edge middleware (JWT only — see
+`auth.config.ts`, which deliberately contains no DB-backed providers so
+it can run on the Edge runtime), `requireStaffPage` in each page, and
+`runAdminAction` in every server action.
+
+**Things to know.**
+
+- Money is entered in rupees in every admin form and stored in paisa.
+- The product form overwrites variant stock with absolute numbers;
+  if orders are flowing while you edit, re-check stock after saving.
+- `ignoreUndefined` is set on the Mongo client and "clear this optional
+  field" updates use `$unset` (`lib/db/update.ts`), so an emptied field is
+  removed from the document rather than stored as `null`.
+- Staff login is rate-limited (10 attempts / 10 min / IP) before bcrypt
+  runs; the login form is a server action so it also works without JS.
 
 ## External services you'll need for production
 

@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { objectIdSchema } from './common';
+import { imageLocationSchema, objectIdSchema } from './common';
 
 export const productImageSchema = z.object({
-  url: z.url(),
+  url: imageLocationSchema,
   publicId: z.string().min(1),
   alt: z.string().trim().min(1).max(200),
   order: z.number().int().min(0),

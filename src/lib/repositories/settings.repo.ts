@@ -1,5 +1,6 @@
 import { storeSettings } from '@/lib/db/collections';
 import type { StoreSettings } from '@/types/domain';
+import { toSetUnset } from '@/lib/db/update';
 
 const DEFAULT_SETTINGS: Omit<StoreSettings, '_id' | 'updatedAt'> = {
   storeName: 'VybeTheBrand',
@@ -28,7 +29,7 @@ export async function getStoreSettings(): Promise<StoreSettings> {
 export async function updateStoreSettings(update: Partial<Omit<StoreSettings, '_id'>>): Promise<void> {
   const col = await storeSettings();
   const existing = await getStoreSettings();
-  await col.updateOne({ _id: existing._id }, { $set: { ...update, updatedAt: new Date() } });
+  await col.updateOne({ _id: existing._id }, toSetUnset<StoreSettings>({ ...update, updatedAt: new Date() }));
 }
 
 /**
@@ -45,8 +46,11 @@ export function resolveShipping(
   const zone = settings.shippingZones.find((z) =>
     z.cities.some((c) => c.toLowerCase() === city.toLowerCase()),
   );
+  // `typeof` rather than `!== undefined`: documents written before
+  // ignoreUndefined was set may carry an explicit null here, and
+  // `subtotal >= null` is true in JS — which would make shipping free for all.
   const feeMinor =
-    settings.freeShippingThresholdMinor !== undefined &&
+    typeof settings.freeShippingThresholdMinor === 'number' &&
     subtotalAfterDiscountMinor >= settings.freeShippingThresholdMinor
       ? 0
       : zone?.feeMinor ?? settings.defaultShippingFeeMinor;

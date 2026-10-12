@@ -2,6 +2,7 @@ import { ObjectId } from 'mongodb';
 import { productCollections } from '@/lib/db/collections';
 import type { ProductCollection } from '@/types/domain';
 import type { CollectionInput } from '@/lib/validation/category';
+import { toSetUnset } from '@/lib/db/update';
 
 export async function listActiveCollections(): Promise<ProductCollection[]> {
   const col = await productCollections();
@@ -40,22 +41,26 @@ export async function updateCollection(id: string, input: CollectionInput): Prom
   const col = await productCollections();
   await col.updateOne(
     { _id: new ObjectId(id) },
-    {
-      $set: {
-        slug: input.slug,
-        name: input.name,
-        description: input.description,
-        bannerImageUrl: input.bannerImageUrl,
-        isActive: input.isActive,
-        startsAt: input.startsAt,
-        endsAt: input.endsAt,
-        updatedAt: new Date(),
-      },
-    },
+    toSetUnset<ProductCollection>({
+      slug: input.slug,
+      name: input.name,
+      description: input.description,
+      bannerImageUrl: input.bannerImageUrl,
+      isActive: input.isActive,
+      startsAt: input.startsAt,
+      endsAt: input.endsAt,
+      updatedAt: new Date(),
+    }),
   );
 }
 
 export async function deleteCollection(id: string): Promise<void> {
   const col = await productCollections();
   await col.deleteOne({ _id: new ObjectId(id) });
+}
+
+export async function getCollectionById(id: string): Promise<ProductCollection | null> {
+  if (!ObjectId.isValid(id)) return null;
+  const col = await productCollections();
+  return col.findOne({ _id: new ObjectId(id) });
 }
